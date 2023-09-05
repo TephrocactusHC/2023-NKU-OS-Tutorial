@@ -11,4 +11,9 @@
 任何样式、渲染问题请直接在[ GITHUB 仓库](https://github.com/TephrocactusMYC/2023-NKU-OS-Tutorial)之中提交 ISSUE，我会酌情处理.
 
 # SHPINX
-提供了原始markdown文件，关于如何安装以及使用 SHPNIX，可见[官方文档](www.sphinx-doc.org/).
+提供了原始 markdown 文件，关于如何安装以及使用 SHPNIX，可见[官方文档](www.sphinx-doc.org/).
+
+# TODO
+- [ ] 把 MARKDOWN 表格换成 reStructuredText 表格
+- [ ] 把 MARKDOWN 引用和注释换成 reStructuredText 风格的 NOTE
+- [ ] 及时跟进最新版本的实验指导手册
