@@ -14,6 +14,6 @@
 提供了原始 markdown 文件，关于如何安装以及使用 SHPNIX，可见[官方文档](www.sphinx-doc.org/).
 
 # TODO
-- [ ] 把 MARKDOWN 表格换成 reStructuredText 表格
+- [x] 把 MARKDOWN 表格换成 reStructuredText 表格 （已使用其他插件解决格式转换问题）
 - [ ] 把 MARKDOWN 引用和注释换成 reStructuredText 风格的 NOTE
 - [ ] 及时跟进最新版本的实验指导手册
