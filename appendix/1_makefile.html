@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>makefile 简介 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="附录：【原理】进程的属性与特征解析" href="4_process_overview.html" />
+    <link rel="prev" title="附录" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">附录</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#id2">本章内容</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">makefile 简介</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">makefile文件的基本结构</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">使用宏变量</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">控制流和函数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4"><strong>实验Makefile解析</strong></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">参考资料</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="4_process_overview.html">附录：【原理】进程的属性与特征解析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="5_user_process.html">附录：【原理】用户进程的特征</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">附录</a></li>
+      <li class="breadcrumb-item active">makefile 简介</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/appendix/1_makefile.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="makefile">
+<h1>makefile 简介<a class="headerlink" href="#makefile" title="永久链接至标题"></a></h1>
+<p>makefile是一种自动构建项目的工具。在我们的ucore实现中， 我们使用了makefile进行项目的自动构建。下面我们来讨论一些关于makefile文件的基本知识。</p>
+<section id="id1">
+<h2>makefile文件的基本结构<a class="headerlink" href="#id1" title="永久链接至标题"></a></h2>
+<p>makefile文件的基本结构是目标（target）、依赖（prerequisites）和命令（command）。每一个makefile文件的内部都包含了许多这样的生成规则。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">target ... </span><span class="o">:</span> <span class="n">prerequisites</span> ...
+    <span class="nb">command</span>
+    ...
+    ...
+</pre></div>
+</div>
+<p>这三个要件描述了一种依赖关系：当依赖比目标文件新的时候，则命令被执行。当我们在命令行输入make的时候，make程序会自动寻找目录下的makefile文件，依次检查依赖关系（以及依赖关系的依赖关系），最终按照合适的顺序执行命令，保证所需要的目标文件被生成。</p>
+</section>
+<section id="id2">
+<h2>使用宏变量<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<p>为了方便把重复的内容进行统一的管理，可以使用makefile的变量。这样，对于重复内容的修改就变成了对变量值的修改。我们一般使用大写的字符串表示变量，比如<code class="docutils literal notranslate"><span class="pre">OBJ</span></code>，<code class="docutils literal notranslate"><span class="pre">OBJECTS</span></code>等。变量定义的方法非常简单，只需要通过等号赋值即可，如下</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">OBJ</span> <span class="o">=</span> a.o b.o
+</pre></div>
+</div>
+<p>在需要使用变量的地方，我们用<code class="docutils literal notranslate"><span class="pre">$(变量名)</span></code>来使用变量。比如一段makefile代码如下所示：</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">main</span><span class="o">:</span> <span class="n">a</span>.<span class="n">o</span> <span class="n">b</span>.<span class="n">o</span>
+	gcc a.o b.o -o main
+</pre></div>
+</div>
+<p>使用了宏变量后就变成了下面这样：</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">OBJ</span> <span class="o">=</span> a.o b.o
+<span class="nf">main</span><span class="o">:</span> <span class="k">$(</span><span class="nv">OBJ</span><span class="k">)</span>
+	gcc <span class="k">$(</span>OBJ<span class="k">)</span> -o main
+</pre></div>
+</div>
+<p>如果我们需要添加一个新的<code class="docutils literal notranslate"><span class="pre">.o</span></code>文件，我们只需要修改第一行代码就可以啦~</p>
+<p>变量也可以使用<code class="docutils literal notranslate"><span class="pre">shell</span></code>命令来定义，比如：</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">cur_dir</span>   <span class="o">:=</span> <span class="k">$(</span>shell <span class="nb">pwd</span><span class="k">)</span>
+</pre></div>
+</div>
+<p>使用这条命令会把当前所在的目录赋给变量<code class="docutils literal notranslate"><span class="pre">cur_dir</span></code>，这是也一种非常好的将shell指令和makefile结合起来的方式。</p>
+</section>
+<section id="id3">
+<h2>控制流和函数<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<p>在makefile中，可以使用<code class="docutils literal notranslate"><span class="pre">if</span></code>等方法控制makefile执行的控制流。比如下面这个例子：</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">foo</span><span class="o">:</span> <span class="k">$(</span><span class="nv">objects</span><span class="k">)</span>
+<span class="cp">ifeq ($(CC),gcc)</span>
+    <span class="k">$(</span>CC<span class="k">)</span> -o foo <span class="k">$(</span>objects<span class="k">)</span> <span class="k">$(</span>libs_for_gcc<span class="k">)</span>
+<span class="cp">else</span>
+    <span class="k">$(</span>CC<span class="k">)</span> -o foo <span class="k">$(</span>objects<span class="k">)</span> <span class="k">$(</span>normal_libs<span class="k">)</span>
+<span class="cp">endif</span>
+</pre></div>
+</div>
+<p>这里使用了<code class="docutils literal notranslate"><span class="pre">ifeq</span></code>指令判断变量<code class="docutils literal notranslate"><span class="pre">CC</span></code>是否为<code class="docutils literal notranslate"><span class="pre">gcc</span></code>，如果是则执行链接<code class="docutils literal notranslate"><span class="pre">gcc</span></code>相关的库，否则采取另外一套操作。类似的关键字还有<code class="docutils literal notranslate"><span class="pre">ifneq</span></code>（如果不相等）、<code class="docutils literal notranslate"><span class="pre">ifdef</span></code>（如果某个变量已定义）、<code class="docutils literal notranslate"><span class="pre">ifndef</span></code>（如果某个变量未定义）。</p>
+<p>makefile中也可以使用函数。函数调用遵循下面的范式：</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="k">$(</span>&lt;<span class="nv">function</span>&gt; &lt;<span class="nv">arguments</span>&gt;<span class="k">)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>makefile提供了许多函数，如字符处理函数，目录操作函数等等，可以帮助我们完成一些makefile中的常用操作。关于如何自定义函数的内容，感兴趣的同学可以自己去了解。</p>
+</section>
+<section id="id4">
+<h2><strong>实验Makefile解析</strong><a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<p>下面是对Lab中的makefile部分代码进行解析：</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">PROJ</span>	<span class="o">:=</span> lab1
+<span class="nv">EMPTY</span>	<span class="o">:=</span>
+<span class="nv">SPACE</span>	<span class="o">:=</span> <span class="k">$(</span>EMPTY<span class="k">)</span> <span class="k">$(</span>EMPTY<span class="k">)</span>
+<span class="nv">SLASH</span>	<span class="o">:=</span> /
+</pre></div>
+</div>
+<p>定义了变量PROJ，其值为lab1。
+定义了变量EMPTY，其为空字符串。
+定义了变量SPACE，其值为两个空格。
+定义了变量SLASH，其值为斜杠。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">V</span>       <span class="o">:=</span> @
+</pre></div>
+</div>
+<p>定义了变量V，值为&#64;。这个变量在后续的命令执行中用于控制命令是否显示在输出中。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="c">#ifndef GCCPREFIX</span>
+<span class="nv">GCCPREFIX</span> <span class="o">:=</span> riscv64-unknown-elf-
+<span class="c">#endif</span>
+</pre></div>
+</div>
+<p>如果变量GCCPREFIX未定义，则将其设置为riscv64-unknown-elf-。这个变量用于指定编译器的前缀。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="cp">ifndef QEMU</span>
+<span class="nv">QEMU</span> <span class="o">:=</span> qemu-system-riscv64
+<span class="cp">endif</span>
+</pre></div>
+</div>
+<p>如果变量QEMU未定义，则将其设置为qemu-system-riscv64。这个变量用于指定QEMU仿真器的名称。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">.SUFFIXES</span><span class="o">:</span> .<span class="n">c</span> .<span class="n">S</span> .<span class="n">h</span>
+</pre></div>
+</div>
+<p>定义了文件后缀名的规则，.c、.S和.h文件被视为源文件。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">.DELETE_ON_ERROR</span><span class="o">:</span>
+</pre></div>
+</div>
+<p>如果在执行过程中发生错误或中断，删除目标文件。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">HOSTCC</span>		<span class="o">:=</span> gcc
+<span class="nv">HOSTCFLAGS</span>	<span class="o">:=</span> -Wall -O2
+</pre></div>
+</div>
+<p>定义了主机编译器的名称和编译选项。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">GDB</span>		<span class="o">:=</span> <span class="k">$(</span>GCCPREFIX<span class="k">)</span>gdb
+</pre></div>
+</div>
+<p>定义了调试器的名称，使用了前缀变量GCCPREFIX。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">CC</span>		<span class="o">:=</span> <span class="k">$(</span>GCCPREFIX<span class="k">)</span>gcc
+<span class="nv">CFLAGS</span>  <span class="o">:=</span> -mcmodel<span class="o">=</span>medany -std<span class="o">=</span>gnu99 -Wno-unused -Werror
+<span class="nv">CFLAGS</span>	<span class="o">+=</span> -fno-builtin -Wall -O2 -nostdinc <span class="k">$(</span>DEFS<span class="k">)</span>
+<span class="nv">CFLAGS</span>	<span class="o">+=</span> -fno-stack-protector -ffunction-sections -fdata-sections
+<span class="nv">CTYPE</span>	<span class="o">:=</span> c S
+</pre></div>
+</div>
+<p>定义了编译器的名称和编译选项。
+CFLAGS包含了一系列编译选项，如代码模型、标准、警告设置等。
+CTYPE定义了源文件的类型。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">LD</span>      <span class="o">:=</span> <span class="k">$(</span>GCCPREFIX<span class="k">)</span>ld
+<span class="nv">LDFLAGS</span>	<span class="o">:=</span> -m elf64lriscv
+<span class="nv">LDFLAGS</span>	<span class="o">+=</span> -nostdlib --gc-sections
+</pre></div>
+</div>
+<p>定义了链接器的名称和链接选项。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">OBJCOPY</span> <span class="o">:=</span> <span class="k">$(</span>GCCPREFIX<span class="k">)</span>objcopy
+<span class="nv">OBJDUMP</span> <span class="o">:=</span> <span class="k">$(</span>GCCPREFIX<span class="k">)</span>objdump
+</pre></div>
+</div>
+<p>定义了目标文件复制和转储的工具名称。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">COPY</span>	<span class="o">:=</span> cp
+<span class="nv">MKDIR</span>   <span class="o">:=</span> mkdir -p
+<span class="nv">MV</span>		<span class="o">:=</span> mv
+<span class="nv">RM</span>		<span class="o">:=</span> rm -f
+<span class="nv">AWK</span>		<span class="o">:=</span> awk
+<span class="nv">SED</span>		<span class="o">:=</span> sed
+<span class="nv">SH</span>		<span class="o">:=</span> sh
+<span class="nv">TR</span>		<span class="o">:=</span> tr
+<span class="nv">TOUCH</span>	<span class="o">:=</span> touch -c
+</pre></div>
+</div>
+<p>定义了文件复制、目录创建、文件移动、文件删除等命令的名称。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">OBJDIR</span>	<span class="o">:=</span> obj
+<span class="nv">BINDIR</span>	<span class="o">:=</span> bin
+</pre></div>
+</div>
+<p>定义了目标文件和二进制文件的存放目录。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">ALLOBJS</span>	<span class="o">:=</span>
+<span class="nv">ALLDEPS</span>	<span class="o">:=</span>
+<span class="nv">TARGETS</span>	<span class="o">:=</span>
+</pre></div>
+</div>
+<p>定义了用于存放所有目标文件、依赖文件和目标的变量。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="cp">include tools/function.mk</span>
+</pre></div>
+</div>
+<p>包含了tools/function.mk文件，该文件包含了makefile中使用的函数定义。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">listf_cc</span> <span class="o">=</span> <span class="k">$(</span>call listf,<span class="k">$(</span><span class="m">1</span><span class="k">)</span>,<span class="k">$(</span>CTYPE<span class="k">))</span>
+</pre></div>
+</div>
+<p>定义了一个函数宏listf_cc，用于列出指定目录中指定类型的文件。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">add_files_cc</span> <span class="o">=</span> <span class="k">$(</span>call add_files,<span class="k">$(</span><span class="m">1</span><span class="k">)</span>,<span class="k">$(</span>CC<span class="k">)</span>,<span class="k">$(</span>CFLAGS<span class="k">)</span> <span class="k">$(</span><span class="m">3</span><span class="k">)</span>,<span class="k">$(</span><span class="m">2</span><span class="k">)</span>,<span class="k">$(</span><span class="m">4</span><span class="k">))</span>
+<span class="nv">create_target_cc</span> <span class="o">=</span> <span class="k">$(</span>call create_target,<span class="k">$(</span><span class="m">1</span><span class="k">)</span>,<span class="k">$(</span><span class="m">2</span><span class="k">)</span>,<span class="k">$(</span><span class="m">3</span><span class="k">)</span>,<span class="k">$(</span>CC<span class="k">)</span>,<span class="k">$(</span>CFLAGS<span class="k">))</span>
+</pre></div>
+</div>
+<p>定义了两个函数宏add_files_cc和create_target_cc，用于添加文件和创建目标。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># for hostcc</span>
+<span class="nv">add_files_host</span> <span class="o">=</span> <span class="k">$(</span>call add_files,<span class="k">$(</span><span class="m">1</span><span class="k">)</span>,<span class="k">$(</span>HOSTCC<span class="k">)</span>,<span class="k">$(</span>HOSTCFLAGS<span class="k">)</span>,<span class="k">$(</span><span class="m">2</span><span class="k">)</span>,<span class="k">$(</span><span class="m">3</span><span class="k">))</span>
+<span class="nv">create_target_host</span> <span class="o">=</span> <span class="k">$(</span>call create_target,<span class="k">$(</span><span class="m">1</span><span class="k">)</span>,<span class="k">$(</span><span class="m">2</span><span class="k">)</span>,<span class="k">$(</span><span class="m">3</span><span class="k">)</span>,<span class="k">$(</span>HOSTCC<span class="k">)</span>,<span class="k">$(</span>HOSTCFLAGS<span class="k">))</span>
+</pre></div>
+</div>
+<p>这段代码继续定义了一些函数和变量，与主机编译器相关。</p>
+<p><code class="docutils literal notranslate"><span class="pre">add_files_host</span></code>函数：它是在之前定义的<code class="docutils literal notranslate"><span class="pre">add_files</span></code>函数的基础上进行了扩展。<code class="docutils literal notranslate"><span class="pre">add_files_host</span></code>函数用于添加主机编译器编译的文件。该函数将使用主机编译器和选项编译源文件，并将生成的目标文件添加到文件列表中。</p>
+<p>create_target_host<code class="docutils literal notranslate"><span class="pre">函数：它是在之前定义的</span></code>create_target<code class="docutils literal notranslate"><span class="pre">函数的基础上进行了扩展。</span></code>create_target_host`函数用于创建主机编译的目标。该函数将使用主机编译器和选项创建目标文件。
+这些函数和变量与主机编译器相关，用于在构建过程中使用主机编译器编译文件。它们提供了用于添加主机编译文件和创建主机编译目标的功能。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span>cgtype = $(patsubst %.$(2),%.$(3),$(1))
+
+objfile = $(call toobj,$(1))
+
+asmfile = $(call cgtype,$(call toobj,$(1)),o,asm)
+
+outfile = $(call cgtype,$(call toobj,$(1)),o,out)
+
+symfile = $(call cgtype,$(call toobj,$(1)),o,sym)
+
+\# for match pattern
+
+match = $(shell echo $(2) | $(AWK) &#39;{for(i=1;i&lt;=NF;i++){if(match(&quot;$(1)&quot;,&quot;^&quot;$$(i)&quot;$$&quot;)){exit 1;}}}&#39;; echo $$?)
+</pre></div>
+</div>
+<p>这段代码定义了一些函数和变量，用于处理文件名和模式匹配。</p>
+<p><code class="docutils literal notranslate"><span class="pre">cgtype</span></code>函数：它使用<code class="docutils literal notranslate"><span class="pre">patsubst</span></code>函数将文件名中的后缀名替换为指定的新后缀名。</p>
+<p><code class="docutils literal notranslate"><span class="pre">objfile</span></code>函数：它调用<code class="docutils literal notranslate"><span class="pre">toobj</span></code>函数将文件名转换为目标文件名（以<code class="docutils literal notranslate"><span class="pre">.o</span></code>结尾）。</p>
+<p><code class="docutils literal notranslate"><span class="pre">asmfile</span></code>、<code class="docutils literal notranslate"><span class="pre">outfile</span></code>和<code class="docutils literal notranslate"><span class="pre">symfile</span></code>函数：它们使用<code class="docutils literal notranslate"><span class="pre">cgtype</span></code>函数来生成特定类型的文件名。它们接受一个参数：<code class="docutils literal notranslate"><span class="pre">$(1)</span></code>代表文件名。<code class="docutils literal notranslate"><span class="pre">asmfile</span></code>用于生成汇编文件名（以<code class="docutils literal notranslate"><span class="pre">.asm</span></code>结尾），<code class="docutils literal notranslate"><span class="pre">outfile</span></code>用于生成输出文件名（以<code class="docutils literal notranslate"><span class="pre">.out</span></code>结尾），<code class="docutils literal notranslate"><span class="pre">symfile</span></code>用于生成符号文件名（以<code class="docutils literal notranslate"><span class="pre">.sym</span></code>结尾）。</p>
+<p><code class="docutils literal notranslate"><span class="pre">match</span></code>函数：它使用<code class="docutils literal notranslate"><span class="pre">awk</span></code>命令来进行模式匹配。它接受两个参数：<code class="docutils literal notranslate"><span class="pre">$(1)</span></code>代表模式，<code class="docutils literal notranslate"><span class="pre">$(2)</span></code>代表要匹配的字符串。它返回一个值，如果匹配成功则为0，否则为1。该函数用于判断目标是否与指定的模式匹配。</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># create kernel target</span>
+<span class="nv">kernel</span> <span class="o">=</span> <span class="k">$(</span>call totarget,kernel<span class="k">)</span>
+
+<span class="nf">$(kernel)</span><span class="o">:</span> <span class="n">tools</span>/<span class="n">kernel</span>.<span class="n">ld</span>
+
+<span class="nf">$(kernel)</span><span class="o">:</span> <span class="k">$(</span><span class="nv">KOBJS</span><span class="k">)</span>
+	@echo + ld <span class="nv">$@</span>
+	<span class="k">$(</span>V<span class="k">)$(</span>LD<span class="k">)</span> <span class="k">$(</span>LDFLAGS<span class="k">)</span> -T tools/kernel.ld -o <span class="nv">$@</span> <span class="k">$(</span>KOBJS<span class="k">)</span>
+	@<span class="k">$(</span>OBJDUMP<span class="k">)</span> -S <span class="nv">$@</span> &gt; <span class="k">$(</span>call asmfile,kernel<span class="k">)</span>
+	@<span class="k">$(</span>OBJDUMP<span class="k">)</span> -t <span class="nv">$@</span> <span class="p">|</span> <span class="k">$(</span>SED<span class="k">)</span> <span class="s1">&#39;1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d&#39;</span> &gt; <span class="k">$(</span>call symfile,kernel<span class="k">)</span>
+
+<span class="k">$(</span><span class="nv">call</span> <span class="nv">create_target</span>,<span class="nv">kernel</span><span class="k">)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>这段代码用于构建内核（kernel）目标文件。首先，它使用<code class="docutils literal notranslate"><span class="pre">$(call</span> <span class="pre">totarget,kernel)</span></code>宏来将目标名称转换为目标文件名。然后，它定义了一个规则，指定了目标文件（$(kernel)）的依赖关系和构建命令。</p>
+<p>依赖关系：</p>
+<ol class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tools/kernel.ld</span></code>：作为目标文件的一个依赖项，表示该文件需要先于目标文件构建完成。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$(KOBJS)</span></code>：这是一个变量，表示内核目标文件的一组依赖项。具体的依赖项可能在Makefile的其他地方定义。</p></li>
+</ol>
+<p>构建命令：</p>
+<ol class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;echo</span> <span class="pre">+</span> <span class="pre">ld</span> <span class="pre">$&#64;</span></code>：打印构建命令，其中$&#64;表示目标文件名。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$(V)$(LD)</span> <span class="pre">$(LDFLAGS)</span> <span class="pre">-T</span> <span class="pre">tools/kernel.ld</span> <span class="pre">-o</span> <span class="pre">$&#64;</span> <span class="pre">$(KOBJS)</span></code>：这是实际的构建命令。它使用LD变量指定的链接器（可能是GNU ld）来链接目标文件。LDFLAGS变量包含了链接器的一些选项。-T选项指定链接脚本文件为<code class="docutils literal notranslate"><span class="pre">tools/kernel.ld</span></code>，-o选项指定输出文件为目标文件名，$(KOBJS)表示依赖项的列表。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;$(OBJDUMP)</span> <span class="pre">-S</span> <span class="pre">$&#64;</span> <span class="pre">&gt;</span> <span class="pre">$(call</span> <span class="pre">asmfile,kernel)</span></code>：使用OBJDUMP变量指定的反汇编工具将目标文件反汇编，并将结果重定向到一个文件中，该文件由<code class="docutils literal notranslate"><span class="pre">$(call</span> <span class="pre">asmfile,kernel)</span></code>宏指定。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;$(OBJDUMP)</span> <span class="pre">-t</span> <span class="pre">$&#64;</span> <span class="pre">|</span> <span class="pre">$(SED)</span> <span class="pre">'1,/SYMBOL</span> <span class="pre">TABLE/d;</span> <span class="pre">s/</span> <span class="pre">.*</span> <span class="pre">/</span> <span class="pre">/;</span> <span class="pre">/^$$/d'</span> <span class="pre">&gt;</span> <span class="pre">$(call</span> <span class="pre">symfile,kernel)</span></code>：使用OBJDUMP变量指定的工具获取目标文件的符号表，并使用SED变量指定的工具对符号表进行一些处理，最后将结果重定向到一个文件中，该文件由<code class="docutils literal notranslate"><span class="pre">$(call</span> <span class="pre">symfile,kernel)</span></code>宏指定。</p></li>
+</ol>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="c"># create ucore.img</span>
+<span class="nv">UCOREIMG</span>	<span class="o">:=</span> <span class="k">$(</span>call totarget,ucore.img<span class="k">)</span>
+
+
+<span class="nf">$(UCOREIMG)</span><span class="o">:</span> <span class="k">$(</span><span class="nv">kernel</span><span class="k">)</span>
+	<span class="k">$(</span>OBJCOPY<span class="k">)</span> <span class="k">$(</span>kernel<span class="k">)</span> --strip-all -O binary <span class="nv">$@</span>
+
+<span class="k">$(</span><span class="nv">call</span> <span class="nv">create_target</span>,<span class="nv">ucore.img</span><span class="k">)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>这段代码用于创建<code class="docutils literal notranslate"><span class="pre">ucore.img</span></code>文件。首先，它使用<code class="docutils literal notranslate"><span class="pre">$(call</span> <span class="pre">totarget,ucore.img)</span></code>宏来将目标名称转换为目标文件名。这个宏可能在Makefile的其他地方定义。然后，它定义了一个规则，指定了<code class="docutils literal notranslate"><span class="pre">ucore.img</span></code>目标文件的依赖关系和构建命令。</p>
+<p>依赖关系：</p>
+<ol class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">$(kernel)</span></code>：作为目标文件的一个依赖项，表示该文件需要先于目标文件构建完成。</p></li>
+</ol>
+<p>构建命令：</p>
+<ol class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">$(OBJCOPY)</span> <span class="pre">$(kernel)</span> <span class="pre">--strip-all</span> <span class="pre">-O</span> <span class="pre">binary</span> <span class="pre">$&#64;</span></code>：这是实际的构建命令。它使用OBJCOPY变量指定的工具，将<code class="docutils literal notranslate"><span class="pre">$(kernel)</span></code>目标文件进行处理。<code class="docutils literal notranslate"><span class="pre">--strip-all</span></code>选项表示移除所有符号表和调试信息，<code class="docutils literal notranslate"><span class="pre">-O</span> <span class="pre">binary</span></code>选项表示将目标文件输出为二进制文件。最后，<code class="docutils literal notranslate"><span class="pre">$&#64;</span></code>表示目标文件名，即<code class="docutils literal notranslate"><span class="pre">ucore.img</span></code>。</p></li>
+</ol>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">.PHONY</span><span class="o">:</span> <span class="n">qemu</span> 
+<span class="nf">qemu</span><span class="o">:</span> <span class="k">$(</span><span class="nv">UCOREIMG</span><span class="k">)</span> <span class="k">$(</span><span class="nv">SWAPIMG</span><span class="k">)</span> <span class="k">$(</span><span class="nv">SFSIMG</span><span class="k">)</span>
+<span class="c">#	$(V)$(QEMU) -kernel $(UCOREIMG) -nographic</span>
+	<span class="k">$(</span>V<span class="k">)$(</span>QEMU<span class="k">)</span> <span class="se">\</span>
+		-machine virt <span class="se">\</span>
+		-nographic <span class="se">\</span>
+		-bios default <span class="se">\</span>
+		-device loader,file<span class="o">=</span><span class="k">$(</span>UCOREIMG<span class="k">)</span>,addr<span class="o">=</span>0x80200000
+</pre></div>
+</div>
+<p>这段代码就是我们启动qemu的命令，这段代码首先通过宏定义$(UCOREIMG) $(SWAPIMG) $(SFSIMG)的函数进行目标文件的构建，然后使用qemu语句进行qemu启动加载内核。其中：</p>
+<ul class="simple">
+<li><p>-machine virt 表示将模拟的 64 位 RISC-V 计算机设置为名为 virt 的通用虚拟平台。</p></li>
+<li><p>-nographic 表示模拟器不需要提供图形界面，而只需要对外输出字符流。</p></li>
+<li><p>通过 -bios 可以设置 Qemu 模拟器开机时用来初始化的引导加载程序（bootloader），这里我们使用默认的Opensbi</p></li>
+<li><p>通过 -device loader 可以在 Qemu 模拟器开机之前将一个宿主机上的文件载入到 Qemu 的物理内存的指定位置中， file 和 addr 分别可以设置待载入文件的路径以及将文件载入到的 Qemu 物理内存上的物理地址。</p></li>
+</ul>
+</section>
+<section id="id5">
+<h2>参考资料<a class="headerlink" href="#id5" title="永久链接至标题"></a></h2>
+<p><a class="reference external" href="https://seisman.github.io/how-to-write-makefile/index.html">跟我一起写makefile</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="index.html" class="btn btn-neutral float-left" title="附录" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="4_process_overview.html" class="btn btn-neutral float-right" title="附录：【原理】进程的属性与特征解析" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

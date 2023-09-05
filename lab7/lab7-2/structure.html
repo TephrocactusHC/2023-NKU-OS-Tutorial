@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目组成 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="同步互斥的一些基本概念" href="../lab7-3/1_concept.html" />
+    <link rel="prev" title="练习" href="exercises.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab7 同步互斥</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab7-1/goals.html">实验目的</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">实验内容</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-3/1_concept.html">同步互斥的一些基本概念</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-4/2_semaphore.html">信号量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-5/3_monitor.html">管程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-6/appendix.html">附录：执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>的大致输出</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab7 同步互斥</a></li>
+          <li class="breadcrumb-item"><a href="index.html">实验内容</a></li>
+      <li class="breadcrumb-item active">项目组成</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab7/lab7-2/structure.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>项目组成<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>lab7
+├── Makefile
+├── kern
+│   ├── debug
+│   │   ├── assert.h
+│   │   ├── kdebug.c
+│   │   ├── kdebug.h
+│   │   ├── kmonitor.c
+│   │   ├── kmonitor.h
+│   │   ├── panic.c
+│   │   └── stab.h
+│   ├── driver
+│   │   ├── clock.c
+│   │   ├── clock.h
+│   │   ├── console.c
+│   │   ├── console.h
+│   │   ├── ide.c
+│   │   ├── ide.h
+│   │   ├── intr.c
+│   │   ├── intr.h
+│   │   ├── kbdreg.h
+│   │   ├── picirq.c
+│   │   └── picirq.h
+│   ├── fs
+│   │   ├── fs.h
+│   │   ├── swapfs.c
+│   │   └── swapfs.h
+│   ├── init
+│   │   ├── entry.S
+│   │   └── init.c
+│   ├── libs
+│   │   ├── readline.c
+│   │   └── stdio.c
+│   ├── mm
+│   │   ├── default_pmm.c
+│   │   ├── default_pmm.h
+│   │   ├── kmalloc.c
+│   │   ├── kmalloc.h
+│   │   ├── memlayout.h
+│   │   ├── mmu.h
+│   │   ├── pmm.c
+│   │   ├── pmm.h
+│   │   ├── swap.c
+│   │   ├── swap.h
+│   │   ├── swap_fifo.c
+│   │   ├── swap_fifo.h
+│   │   ├── vmm.c
+│   │   └── vmm.h
+│   ├── process
+│   │   ├── entry.S
+│   │   ├── proc.c
+│   │   ├── proc.h
+│   │   └── switch.S
+│   ├── schedule
+│   │   ├── default_sched.h
+│   │   ├── default_sched_c.c
+│   │   ├── default_sched_stride
+│   │   ├── sched.c
+│   │   └── sched.h
+│   ├── sync
+│   │   ├── check_sync.c
+│   │   ├── monitor.c
+│   │   ├── monitor.h
+│   │   ├── sem.c
+│   │   ├── sem.h
+│   │   ├── sync.h
+│   │   ├── wait.c
+│   │   └── wait.h
+│   ├── syscall
+│   │   ├── syscall.c
+│   │   └── syscall.h
+│   └── trap
+│       ├── trap.c
+│       ├── trap.h
+│       └── trapentry.S
+├── lab5.md
+├── libs
+│   ├── atomic.h
+│   ├── defs.h
+│   ├── elf.h
+│   ├── error.h
+│   ├── hash.c
+│   ├── list.h
+│   ├── printfmt.c
+│   ├── rand.c
+│   ├── riscv.h
+│   ├── sbi.h
+│   ├── skew_heap.h
+│   ├── stdarg.h
+│   ├── stdio.h
+│   ├── stdlib.h
+│   ├── string.c
+│   ├── string.h
+│   └── unistd.h
+├── tools
+│   ├── boot.ld
+│   ├── function.mk
+│   ├── gdbinit
+│   ├── grade.sh
+│   ├── kernel.ld
+│   ├── sign.c
+│   ├── user.ld
+│   └── vector.c
+└── user
+    ├── badarg.c
+    ├── badsegment.c
+    ├── divzero.c
+    ├── exit.c
+    ├── faultread.c
+    ├── faultreadkernel.c
+    ├── forktest.c
+    ├── forktree.c
+    ├── hello.c
+    ├── libs
+    │   ├── initcode.S
+    │   ├── panic.c
+    │   ├── stdio.c
+    │   ├── syscall.c
+    │   ├── syscall.h
+    │   ├── ulib.c
+    │   ├── ulib.h
+    │   └── umain.c
+    ├── matrix.c
+    ├── pgdir.c
+    ├── priority.c
+    ├── sleep.c
+    ├── sleepkill.c
+    ├── softint.c
+    ├── spin.c
+    ├── testbss.c
+    ├── waitkill.c
+    └── yield.c
+
+16 directories, 115 files
+</pre></div>
+</div>
+<p>简单说明如下：</p>
+<ul class="simple">
+<li><p>kern/schedule/{sched.h,sched.c}: 增加了定时器（timer）机制，用于进程/线程的do_sleep功能。</p></li>
+<li><p>kern/sync/sync.h: 去除了lock实现（这对于不抢占内核没用）。</p></li>
+<li><p>kern/sync/wait.[ch]:定义了等待队列wait_queue结构和等待entry的wait结构以及在此之上的函数，这是ucore中的信号量semophore机制和条件变量机制的基础，在本次实验中你需要了解其实现。</p></li>
+<li><p>kern/sync/sem.[ch]:定义并实现了ucore中内核级信号量相关的数据结构和函数，本次试验中你需要了解其中的实现，并基于此完成内核级条件变量的设计与实现。</p></li>
+<li><p>user/ libs/ {syscall.[ch],ulib.[ch]}与kern/sync/syscall.c：实现了进程sleep相关的系统调用的参数传递和调用关系。</p></li>
+<li><p>user/{ sleep.c,sleepkill.c}: 进程睡眠相关的一些测试用户程序。</p></li>
+<li><p>kern/sync/monitor.[ch]:基于管程的条件变量的实现程序，在本次实验中是练习的一部分，要求完成。</p></li>
+<li><p>kern/sync/check_sync.c：实现了基于管程的哲学家就餐问题，在本次实验中是练习的一部分，要求完成基于管程的哲学家就餐问题。</p></li>
+<li><p>kern/mm/vmm.[ch]：用信号量mm_sem取代mm_struct中原有的mm_lock。（本次实验不用管）</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="exercises.html" class="btn btn-neutral float-left" title="练习" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab7-3/1_concept.html" class="btn btn-neutral float-right" title="同步互斥的一些基本概念" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

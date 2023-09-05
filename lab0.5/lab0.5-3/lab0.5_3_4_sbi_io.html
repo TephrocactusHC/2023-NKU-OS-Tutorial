@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>从SBI到stdio &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="Just make it" href="lab0.5_3_5_makeit.html" />
+    <link rel="prev" title="“真正的”入口点" href="lab0.5_3_3_kern_init.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-1/lab0.5_1_goals.html">实验目的：</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-2/index.html">实验内容</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">从机器启动到操作系统运行的过程</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-4/lab0.5_4_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+          <li class="breadcrumb-item"><a href="index.html">从机器启动到操作系统运行的过程</a></li>
+      <li class="breadcrumb-item active">从SBI到stdio</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab0.5/lab0.5-3/lab0.5_3_4_sbi_io.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="sbistdio">
+<h1>从SBI到stdio<a class="headerlink" href="#sbistdio" title="永久链接至标题"></a></h1>
+<p>OpenSBI作为运行在M态的软件（或者说固件）, 提供了一些接口供我们编写内核的时候使用。</p>
+<p>我们可以通过<code class="docutils literal notranslate"><span class="pre">ecall</span></code>指令(environment call)调用OpenSBI。通过寄存器传递给OpenSBI一个”调用编号“，如果编号在 <code class="docutils literal notranslate"><span class="pre">0-8</span></code> 之间，则由OpenSBI进行处理，否则交由我们自己的中断处理程序处理（暂未实现）。有时OpenSBI调用需要像函数调用一样传递参数，这里传递参数的方式也和函数调用一样，按照riscv的函数调用约定(calling convention)把参数放到寄存器里。可以阅读<a class="reference external" href="https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc">SBI的详细文档</a>。</p>
+<blockquote>
+<div><p>须知 ecall</p>
+<p><strong>ecall</strong>(environment call)，当我们在 S 态执行这条指令时，会触发一个 ecall-from-s-mode-exception，从而进入 M 模式中的中断处理流程（如设置定时器等）；当我们在 U 态执行这条指令时，会触发一个 ecall-from-u-mode-exception，从而进入 S 模式中的中断处理流程（常用来进行系统调用）。</p>
+</div></blockquote>
+<p>C语言并不能直接调用<code class="docutils literal notranslate"><span class="pre">ecall</span></code>, 需要通过内联汇编来实现。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// libs/sbi.c</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sbi.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span><span class="cp"></span>
+
+<span class="c1">//SBI编号和函数的对应</span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_SET_TIMER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_CONSOLE_PUTCHAR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_CONSOLE_GETCHAR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_CLEAR_IPI</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_SEND_IPI</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_REMOTE_FENCE_I</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_REMOTE_SFENCE_VMA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_REMOTE_SFENCE_VMA_ASID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span><span class="w"></span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">SBI_SHUTDOWN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span><span class="w"></span>
+<span class="c1">//sbi_call函数是我们关注的核心</span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="nf">sbi_call</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">sbi_type</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg0</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg1</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ret_val</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">__asm__</span><span class="w"> </span><span class="k">volatile</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;mv x17, %[sbi_type]</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;mv x10, %[arg0]</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;mv x11, %[arg1]</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;mv x12, %[arg2]</span><span class="se">\n</span><span class="s">&quot;</span><span class="w">   </span><span class="c1">//mv操作把参数的数值放到寄存器里</span>
+<span class="w">        </span><span class="s">&quot;ecall</span><span class="se">\n</span><span class="s">&quot;</span><span class="w">    </span><span class="c1">//参数放好之后，通过ecall, 交给OpenSBI来执行</span>
+<span class="w">        </span><span class="s">&quot;mv %[ret_val], x10&quot;</span><span class="w">  </span>
+<span class="w">        </span><span class="c1">//OpenSBI按照riscv的calling convention,把返回值放到x10寄存器里</span>
+<span class="w">        </span><span class="c1">//我们还需要自己通过内联汇编把返回值拿到我们的变量里</span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="n">ret_val</span><span class="p">]</span><span class="w"> </span><span class="s">&quot;=r&quot;</span><span class="w"> </span><span class="p">(</span><span class="n">ret_val</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="n">sbi_type</span><span class="p">]</span><span class="w"> </span><span class="s">&quot;r&quot;</span><span class="w"> </span><span class="p">(</span><span class="n">sbi_type</span><span class="p">),</span><span class="w"> </span><span class="p">[</span><span class="n">arg0</span><span class="p">]</span><span class="w"> </span><span class="s">&quot;r&quot;</span><span class="w"> </span><span class="p">(</span><span class="n">arg0</span><span class="p">),</span><span class="w"> </span><span class="p">[</span><span class="n">arg1</span><span class="p">]</span><span class="w"> </span><span class="s">&quot;r&quot;</span><span class="w"> </span><span class="p">(</span><span class="n">arg1</span><span class="p">),</span><span class="w"> </span><span class="p">[</span><span class="n">arg2</span><span class="p">]</span><span class="w"> </span><span class="s">&quot;r&quot;</span><span class="w"> </span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;memory&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret_val</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">sbi_console_putchar</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">ch</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">sbi_call</span><span class="p">(</span><span class="n">SBI_CONSOLE_PUTCHAR</span><span class="p">,</span><span class="w"> </span><span class="n">ch</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"> </span><span class="c1">//注意这里ch隐式类型转换为int64_t</span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">sbi_set_timer</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">stime_value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">sbi_call</span><span class="p">(</span><span class="n">SBI_SET_TIMER</span><span class="p">,</span><span class="w"> </span><span class="n">stime_value</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>须知 函数调用与calling convention</p>
+<p>我们知道，编译器将高级语言源代码翻译成汇编代码。对于汇编语言而言，在最简单的编程模型中，所能够利用的只有指令集中提供的指令、各通用寄存器、 CPU 的状态、内存资源。那么，在高级语言中，我们进行一次函数调用，编译器要做哪些工作利用汇编语言来实现这一功能呢？</p>
+<p>显然并不是仅用一条指令跳转到被调用函数开头地址就行了。我们还需要考虑：</p>
+<ul class="simple">
+<li><p>如何传递参数？</p></li>
+<li><p>如何传递返回值？</p></li>
+<li><p>如何保证函数返回后能从我们期望的位置继续执行？</p></li>
+</ul>
+<p>等更多事项。通常编译器按照某种规范去翻译所有的函数调用，这种规范被称为 <a class="reference external" href="https://en.wikipedia.org/wiki/Calling_convention">calling convention</a> 。值得一提的是，为了实现函数调用，我们需要预先分配一块内存作为 <strong>调用栈</strong> ，后面会看到调用栈在函数调用过程中极其重要。你也可以理解为什么第一章刚开始我们就要分配栈了。</p>
+<p>可以参考<a class="reference external" href="https://riscv.org/wp-content/uploads/2015/01/riscv-calling.pdf">riscv calling convention</a></p>
+</div></blockquote>
+<p>这样我们就可以通过<code class="docutils literal notranslate"><span class="pre">sbi_console_putchar()</span></code>来输出一个字符。接下来我们要做的事情就像月饼包装，把它封了一层又一层。</p>
+<p><code class="docutils literal notranslate"><span class="pre">console.c</span></code>只是简单地封装一下</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/driver/console.c</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sbi.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;console.h&gt;</span><span class="cp"></span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">cons_putc</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">sbi_console_putchar</span><span class="p">((</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="p">)</span><span class="n">c</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">stdio.c</span></code>里面实现了一些函数，注意我们已经实现了ucore版本的puts函数:  <code class="docutils literal notranslate"><span class="pre">cputs()</span></code></p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/libs/stdio.c</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;console.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+
+<span class="cm">/* HIGH level console I/O */</span><span class="w"></span>
+
+<span class="cm">/* *</span>
+<span class="cm"> * cputch - writes a single character @c to stdout, and it will</span>
+<span class="cm"> * increace the value of counter pointed by @cnt.</span>
+<span class="cm"> * */</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">cputch</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">cnt</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">cons_putc</span><span class="p">(</span><span class="n">c</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="o">*</span><span class="n">cnt</span><span class="p">)</span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="cm">/* cputchar - writes a single character to stdout */</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">cputchar</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">cons_putc</span><span class="p">(</span><span class="n">c</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">cputs</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">str</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">cnt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">c</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">str</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="sc">&#39;\0&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">cputch</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cnt</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">cputch</span><span class="p">(</span><span class="sc">&#39;\n&#39;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">cnt</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">cnt</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>我们还在<code class="docutils literal notranslate"><span class="pre">libs/printfmt.c</span></code>实现了一些复杂的格式化输入输出函数。最后得到的<code class="docutils literal notranslate"><span class="pre">cprintf()</span></code>函数仍在<code class="docutils literal notranslate"><span class="pre">kern/libs/stdio.c</span></code>定义，功能和C标准库的<code class="docutils literal notranslate"><span class="pre">printf()</span></code>基本相同。</p>
+<p>可能你注意到我们用到一个头文件<code class="docutils literal notranslate"><span class="pre">defs.h</span></code>, 我们在里面定义了一些有用的宏和类型</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// libs/defs.h</span>
+<span class="cp">#ifndef __LIBS_DEFS_H__</span>
+<span class="cp">#define __LIBS_DEFS_H__</span>
+<span class="p">...</span><span class="w"></span>
+<span class="cm">/* Represents true-or-false values */</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="kt">bool</span><span class="p">;</span><span class="w"></span>
+<span class="cm">/* Explicitly-sized versions of integer types */</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="kt">int8_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="kt">uint8_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="kt">int16_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="kt">uint16_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="kt">int32_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="kt">uint32_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">int64_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">uint64_t</span><span class="p">;</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="cm">/* *</span>
+<span class="cm"> * Rounding operations (efficient when n is a power of 2)</span>
+<span class="cm"> * Round down to the nearest multiple of n</span>
+<span class="cm"> * */</span><span class="w"></span>
+<span class="cp">#define ROUNDDOWN(a, n) ({                                          \</span>
+<span class="cp">            size_t __a = (size_t)(a);                               \</span>
+<span class="cp">            (typeof(a))(__a - __a % (n));                           \</span>
+<span class="cp">        })</span>
+<span class="p">...</span><span class="w"></span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">printfmt.c</span></code>还依赖一个头文件<code class="docutils literal notranslate"><span class="pre">riscv.h</span></code>,这个头文件主要定义了若干和riscv架构相关的宏，尤其是将一些内联汇编的代码封装成宏，使得我们更方便地使用内联汇编来读写寄存器。当然这里我们还没有用到它的强大功能。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// libs/riscv.h</span>
+<span class="p">...</span><span class="w"></span>
+<span class="cp">#define read_csr(reg) ({ unsigned long __tmp; \</span>
+<span class="cp">  asm volatile (&quot;csrr %0, &quot; #reg : &quot;=r&quot;(__tmp)); \</span>
+<span class="cp">  __tmp; })</span>
+<span class="c1">//通过内联汇编包装了 csrr 指令为 read_csr() 宏</span>
+<span class="cp">#define write_csr(reg, val) ({ \</span>
+<span class="cp">  if (__builtin_constant_p(val) &amp;&amp; (unsigned long)(val) &lt; 32) \</span>
+<span class="cp">    asm volatile (&quot;csrw &quot; #reg &quot;, %0&quot; :: &quot;i&quot;(val)); \</span>
+<span class="cp">  else \</span>
+<span class="cp">    asm volatile (&quot;csrw &quot; #reg &quot;, %0&quot; :: &quot;r&quot;(val)); })</span>
+<span class="p">...</span><span class="w"></span>
+</pre></div>
+</div>
+<p>到现在，我们已经看过了一个最小化的内核的各个部分，虽然一些部分没有逐行细读，但我们也知道它在做什么。但一直到现在我们还没进行过编译。下面就把它编译一下跑起来。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab0.5_3_3_kern_init.html" class="btn btn-neutral float-left" title="“真正的”入口点" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="lab0.5_3_5_makeit.html" class="btn btn-neutral float-right" title="Just make it" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

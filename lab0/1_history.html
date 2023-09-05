@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>溯源: ucore的历史 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="概览: 指导书的结构" href="2_overview.html" />
+    <link rel="prev" title="lab0: 预备起" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">lab0: 预备起</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#id2">lab0: 预备起</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">溯源: ucore的历史</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2_overview.html">概览: 指导书的结构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="0_Linux.html">Linux安装与熟悉</a></li>
+<li class="toctree-l3"><a class="reference internal" href="softwares.html">实验中可能使用的软件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="3_startdash.html">开搞：搭建实验环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="4_gdb.html">调试工具介绍</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">lab0: 预备起</a></li>
+      <li class="breadcrumb-item active">溯源: ucore的历史</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/lab0/1_history.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ucore">
+<h1>溯源: ucore的历史<a class="headerlink" href="#ucore" title="永久链接至标题"></a></h1>
+<p>2006年, MIT的Frans Kaashoek等人参考PDP-11上的UNIX Version 6写了一个可在x86指令集架构上运行的操作系统xv6（基于MIT License)。（cited from <a class="reference external" href="https://chyyuu.gitbooks.io/ucore_os_docs/content/lab0/lab0_2_1_about_labs.html">classical ucore</a>）</p>
+<p>2010年, 清华大学操作系统教学团队参考MIT的教学操作系统xv6, 开发了在x86指令集架构上运行的操作系统ucore, 多年来作为操作系统课程的实验框架使用, 已经成为了大家口中的”祖传实验”.</p>
+<p>ucore麻雀虽小，五脏俱全。在不超过5k的代码量中包含虚拟内存管理、进程管理、处理器调度、同步互斥、进程间通信、文件系统等主要内核功能，充分体现了“小而全”的指导思想。</p>
+<p>到了如今，x86指令集架构的问题渐渐开始暴露出来。 虽然在PC平台上占据绝对主流，但出于兼容性考虑x86架构仍然保留了许多的历史包袱，用于教学的时候总有些累赘。另一方面，为了更好的和计算机组成原理课程衔接，将ucore移植到RISC-V架构势在必行。</p>
+<blockquote>
+<div><p><strong>趣闻</strong></p>
+<p>Intel曾经在1989到2000年之间开发过一种<a class="reference external" href="https://en.wikipedia.org/wiki/Itanium">Itanium</a>处理器，它基于全新的IA-64架构, 但这个指令集/处理器产品线以失败告终。其中一个失败原因就是向后兼容性太差，2001年有人测试在Itanium处理器上运行原先的x86软件时，性能仅为同时代x86奔腾处理器的十分之一。</p>
+</div></blockquote>
+<p>由图灵奖得主设计的年轻的精简指令集架构RISC-V(reduced instruction set computer V)具有诸多优势，特别是在教学方面。其设计优雅，开源共享，没有x86指令集那样的历史包袱，学起来更加轻松，为计算机组成原理和操作系统课程的教学提供了一种新思路。</p>
+<blockquote>
+<div><p><strong>趣闻</strong></p>
+<p>RISCV在嵌入式领域异军突起。嵌入式领域的巨头ARM公司受到威胁后，上线了一个网站riscv-basics.com，把RISC-V批判了一番，批判的方面包括：成本、生态系统、碎片化风险、安全性问题、设计验证。但最终迫于业界舆论恶评，ARM关闭了该网站。（cited from <a class="reference external" href="https://zh.wikipedia.org/wiki/RISC-V#%E5%8E%86%E5%8F%B2">Wikipedia: RISCV</a>）</p>
+</div></blockquote>
+<p>我们将ucore的代码移植到64位的RISC-V指令集架构，并借鉴<a class="reference external" href="https://rcore-os.github.io/rCore_tutorial_doc/">rcore tutorial</a>的做法，改进实验指导书。通过本教程，你可以一步一步，一个模块一个模块地从零开始搭建出一个可以运行简单命令行的操作系统。由于使用了step by step的组织方式，每一章都假设你已经完成了前一章的内容阅读和实践，所以建议完成了前一章的实验学习再进入下一章。</p>
+<p>那么还等什么，我们现在开始吧！</p>
+<p>step by step, to the light of ucore!</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="index.html" class="btn btn-neutral float-left" title="lab0: 预备起" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="2_overview.html" class="btn btn-neutral float-right" title="概览: 指导书的结构" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

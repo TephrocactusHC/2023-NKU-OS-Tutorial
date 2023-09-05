@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目组成 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="物理内存管理" href="../lab2-3/index.html" />
+    <link rel="prev" title="练习" href="lab2_2_1_exercise.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab2:物理内存和页表</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab2-1/lab2_1_goal.html">实验目的</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">实验内容</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab2-3/index.html">物理内存管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab2-4/lab2_4_labs_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab2:物理内存和页表</a></li>
+          <li class="breadcrumb-item"><a href="index.html">实验内容</a></li>
+      <li class="breadcrumb-item active">项目组成</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab2/lab2-2/lab2_2_2_files.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>项目组成<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>表1：实验二文件列表</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>── Makefile 
+├── kern
+│   ├── debug
+│   │   ├── assert.h
+│   │   ├── kdebug.c
+│   │   ├── kdebug.h
+│   │   ├── kmonitor.c
+│   │   ├── kmonitor.h
+│   │   ├── panic.c
+│   │   └── stab.h
+│   ├── driver
+│   │   ├── clock.c
+│   │   ├── clock.h
+│   │   ├── console.c
+│   │   ├── console.h
+│   │   ├── intr.c
+│   │   ├── intr.h
+│   ├── init
+│   │   ├── entry.S
+│   │   └── init.c
+│   ├── libs
+│   │   └── stdio.c
+│   ├── mm
+│   │   ├── best_fit_pmm.c
+│   │   ├── best_fit_pmm.h
+│   │   ├── default_pmm.c
+│   │   ├── default_pmm.h
+│   │   ├── memlayout.h
+│   │   ├── mmu.h
+│   │   ├── pmm.c
+│   │   └── pmm.h
+│   └── trap
+│       ├── trap.c
+│       ├── trap.h
+│       └── trapentry.S
+├── libs
+│   ├── atomic.h
+│   ├── defs.h
+│   ├── error.h
+│   ├── list.h
+│   ├── printfmt.c
+│   ├── readline.c
+│   ├── riscv.h
+│   ├── sbi.c
+│   ├── sbi.h
+│   ├── stdarg.h
+│   ├── stdio.h
+│   ├── string.c
+│   └── string.h
+└── tools
+    ├── boot.ld
+    ├── function.mk
+    ├── gdbinit
+    ├── grade.sh
+    ├── kernel.ld
+    ├── kernel_nopage.ld
+    ├── kflash.py
+    ├── rustsbi-k210.bin
+    ├── sign.c
+    ├── vector.c
+</pre></div>
+</div>
+<p><strong>编译方法</strong></p>
+<p>编译并运行代码的命令如下：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make
+
+make qemu
+</pre></div>
+</div>
+<p>则可以得到如下显示界面（仅供参考）</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>chenyu$ make qemu
+<span class="o">(</span>THU.CST<span class="o">)</span> os is loading ...
+Special kernel symbols:
+  entry  0xffffffffc0200036 <span class="o">(</span>virtual<span class="o">)</span>
+  etext  0xffffffffc0201ad2 <span class="o">(</span>virtual<span class="o">)</span>
+  edata  0xffffffffc0206010 <span class="o">(</span>virtual<span class="o">)</span>
+  end    0xffffffffc0206470 <span class="o">(</span>virtual<span class="o">)</span>
+Kernel executable memory footprint: 26KB
+memory management: best_fit_pmm_manager
+physcial memory map:
+  memory: 0x0000000007e00000, <span class="o">[</span>0x0000000080200000, 0x0000000087ffffff<span class="o">]</span>.
+check_alloc_page<span class="o">()</span> succeeded!
+satp virtual address: 0xffffffffc0205000
+satp physical address: 0x0000000080205000
+++ setup timer interrupts
+<span class="m">100</span> ticks
+<span class="m">100</span> ticks
+<span class="m">100</span> ticks
+<span class="m">100</span> ticks
+……
+</pre></div>
+</div>
+<p>通过上图，我们可以看到ucore在显示其entry（入口地址）、etext（代码段截止处地址）、edata（数据段截止处地址）、和end（ucore截止处地址）的值后，ucore显示了物理内存的布局信息，其中包含了内存范围。接下来ucore会以页为最小分配单位实现一个简单的内存分配管理，完成页表的建立，进入分页模式，执行各种我们设置的检查，最后显示ucore建立好的页表内容，并在分页模式下响应时钟中断。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab2_2_1_exercise.html" class="btn btn-neutral float-left" title="练习" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab2-3/index.html" class="btn btn-neutral float-right" title="物理内存管理" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

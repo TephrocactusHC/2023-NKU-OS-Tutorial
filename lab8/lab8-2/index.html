@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>实验内容 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="练习" href="lab8_2_1_exercises.html" />
+    <link rel="prev" title="实验目的" href="../lab8-1/lab8_1_goals.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Lab8 文件系统</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab8-1/lab8_1_goals.html">实验目的</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">实验内容</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-3/lab8_3_FS.html">文件系统</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-4/lab8_3_fs_introduction.html"><strong>文件系统概述</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-5/lab8_3_1_vfs.html">文件系统抽象层VFS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-6/lab8_3_2_sfs.html">硬盘文件系统SFS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-7/lab8_3_3_device.html">设备</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-8/lab8_3_4_file_open.html">open系统调用的执行过程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-9/lab8_3_5_file_read.html">Read系统调用执行过程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-10/shell1.html">从zhong duan到zhong duan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab8-11/lab8_4_lab_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Lab8 文件系统</a></li>
+      <li class="breadcrumb-item active">实验内容</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab8/lab8-2/index.rst.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>实验内容<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>实验七完成了在内核中的同步互斥实验。本次实验涉及的是文件系统，通过分析了解ucore文件系统的总体架构设计，完善读写文件操作(即实现sfs_io_nolock()函数)，从新实现基于文件系统的执行程序机制（即实现load_icode()函数），从而可以完成执行存储在磁盘上的文件和实现文件读写等功能。</p>
+<p>与实验七相比，实验八增加了文件系统，并因此实现了通过文件系统来加载可执行文件到内存中运行的功能，导致对进程管理相关的实现比较大的调整。</p>
+<section id="id2">
+<span id="id3"></span><h2>本节内容<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lab8_2_1_exercises.html">练习</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lab8_2_1_exercises.html#id2">练习0：填写已有实验</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab8_2_1_exercises.html#id3">练习1: 完成读文件操作的实现（需要编码）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab8_2_1_exercises.html#id4">练习2: 完成基于文件系统的执行程序机制的实现（需要编码）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab8_2_1_exercises.html#challenge1-unixpipe">扩展练习 Challenge1：完成基于“UNIX的PIPE机制”的设计方案</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab8_2_1_exercises.html#challenge2-unix">扩展练习 Challenge2：完成基于“UNIX的软连接和硬连接机制”的设计方案</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lab8_2_2_files.html">项目组成</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lab8_2_2_files.html#lab8">Lab8 项目组成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab8_2_2_files.html#id2">Lab8文件系统初始化过程</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="../lab8-1/lab8_1_goals.html" class="btn btn-neutral float-left" title="实验目的" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="lab8_2_1_exercises.html" class="btn btn-neutral float-right" title="练习" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

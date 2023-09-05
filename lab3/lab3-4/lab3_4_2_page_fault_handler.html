@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>页面置换机制设计思路 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="FIFO页面置换算法" href="lab3_4_3_page_swapping_principles.html" />
+    <link rel="prev" title="页替换算法设计思路" href="lab3_4_1_page_swapping.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab3:缺页异常和页面置换</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab3-1/lab3_1_goals.html">实验目的</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab3-2/index.html">实验内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab3-3/index.html">虚拟内存管理</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">页面置换机制的实现</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab3-5/lab3_5_labs_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab3:缺页异常和页面置换</a></li>
+          <li class="breadcrumb-item"><a href="index.html">页面置换机制的实现</a></li>
+      <li class="breadcrumb-item active">页面置换机制设计思路</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab3/lab3-4/lab3_4_2_page_fault_handler.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>页面置换机制设计思路<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>现在我们来看看ucore页面置换机制的实现。</p>
+<p>页面置换机制中， 我们需要维护一些”不在内存当中但是也许会用到“的页，它们存储在磁盘的交换区里，也有对应的虚拟地址，但是因为它们不在内存里，在页表里并没有对它们的虚拟地址进行映射。但是在发生Page Fault之后，会把访问到的页放到内存里，这时也许会把其他页扔出去，来给要用的页腾出地方。页面置换算法的核心任务，主要就是确定”把谁扔出去“。</p>
+<p>页表里的信息大家都知道内容方面是比较有限的，基本上可以理解为”当前哪些数据在内存条里以及它们物理地址和虚拟地址的对应关系”, 这里我们显然需要一些页表之外的数据结构来维护当前页表里没映射的页。也就是要存储以下这些信息：</p>
+<ul class="simple">
+<li><p>有哪些虚拟地址对应的页当前在磁盘上，分别在磁盘上的哪个位置？</p></li>
+<li><p>有哪些虚拟地址对应的页面当前放在内存里？</p></li>
+</ul>
+<p>这两类页面（位于内存/磁盘）因为会相互转换(换入/换出内存)，所以我们将这两类页面一起维护，也就是维护”所有可用的虚拟地址/虚拟页的集合“（不论当前这个虚拟地址对应的页在内存上还是在硬盘上）。之后我们将要实现进程机制，对于不同的进程，可用的虚拟地址（虚拟页）的集合常常是不一样的，因此每个进程需要一个页表，也需要一个数据结构来维护“所有可用的虚拟地址”。</p>
+<p>因此，我们在vmm.h定义两个结构体 (vmm：virtural memory management)。</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>结构体描述一段连续的虚拟地址，从<code class="docutils literal notranslate"><span class="pre">vm_start</span></code>到<code class="docutils literal notranslate"><span class="pre">vm_end</span></code>。 通过包含一个<code class="docutils literal notranslate"><span class="pre">list_entry_t</span></code>成员，我们可以把同一个页表对应的多个<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>结构体串成一个链表，在链表里把它们按照区间的起始点进行排序。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vm_flags</span></code>表示的是一段虚拟地址对应的权限（可读，可写，可执行等），这个权限在页表项里也要进行对应的设置。</p></li>
+</ul>
+<p>我们注意到，每个页表（每个虚拟地址空间）可能包含多个<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>, 也就是多个访问权限可能不同的，不相交的连续地址区间。我们用<code class="docutils literal notranslate"><span class="pre">mm_struct</span></code>结构体把一个页表对应的信息组合起来，包括<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>链表的首指针，对应的页表在内存里的指针，<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>链表的元素个数。</p>
+<p>（参考<code class="docutils literal notranslate"><span class="pre">libs/list.h</span></code>）</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/vmm.h</span>
+<span class="c1">//pre define</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="p">;</span><span class="w"></span>
+
+<span class="c1">// the virtual continuous memory area(vma), [vm_start, vm_end),</span>
+<span class="c1">// addr belong to a vma means  vma.vm_start&lt;= addr &lt;vma.vm_end</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">vm_mm</span><span class="p">;</span><span class="w"> </span><span class="c1">// the set of vma using the same PDT</span>
+<span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">vm_start</span><span class="p">;</span><span class="w">      </span><span class="c1">// start addr of vma</span>
+<span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">vm_end</span><span class="p">;</span><span class="w">        </span><span class="c1">// end addr of vma, not include the vm_end itself</span>
+<span class="w">    </span><span class="n">uint_t</span><span class="w"> </span><span class="n">vm_flags</span><span class="p">;</span><span class="w">       </span><span class="c1">// flags of vma</span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">list_link</span><span class="p">;</span><span class="w">  </span><span class="c1">// linear list link which sorted by start addr of vma</span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="cp">#define le2vma(le, member)                  \</span>
+<span class="cp">    to_struct((le), struct vma_struct, member)</span>
+
+<span class="cp">#define VM_READ                 0x00000001</span>
+<span class="cp">#define VM_WRITE                0x00000002</span>
+<span class="cp">#define VM_EXEC                 0x00000004</span>
+
+<span class="c1">// the control struct for a set of vma using the same Page Table</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">mmap_list</span><span class="p">;</span><span class="w">        </span><span class="c1">// linear list link which sorted by start addr of vma</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mmap_cache</span><span class="p">;</span><span class="w"> </span><span class="c1">// current accessed vma, used for speed purpose</span>
+<span class="w">    </span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="n">pgdir</span><span class="p">;</span><span class="w">                  </span><span class="c1">// the Page Table of these vma</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">map_count</span><span class="p">;</span><span class="w">                 </span><span class="c1">// the count of these vma</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">sm_priv</span><span class="p">;</span><span class="w">                   </span><span class="c1">// the private data for swap manager</span>
+<span class="p">};</span><span class="w"></span>
+</pre></div>
+</div>
+<p>除了以上内容，我们还需要为<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>和<code class="docutils literal notranslate"><span class="pre">mm_struct</span></code>定义和实现一些接口：包括它们的构造函数，以及如何把新的<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>插入到<code class="docutils literal notranslate"><span class="pre">mm_struct</span></code>对应的链表里。注意这两个结构体占用的内存空间需要用<code class="docutils literal notranslate"><span class="pre">kmalloc()</span></code>函数动态分配。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/vmm.c</span>
+<span class="c1">// mm_create -  alloc a mm_struct &amp; initialize it.</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="w"></span>
+<span class="n">mm_create</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kmalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="p">));</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">mm</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">list_init</span><span class="p">(</span><span class="o">&amp;</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">mmap_list</span><span class="p">));</span><span class="w"></span>
+<span class="w">        </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">mmap_cache</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">map_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">swap_init_ok</span><span class="p">)</span><span class="w"> </span><span class="n">swap_init_mm</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span><span class="c1">//我们接下来解释页面置换的初始化</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">sm_priv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">mm</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// vma_create - alloc a vma_struct &amp; initialize it. (addr range: vm_start~vm_end)</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="w"></span>
+<span class="n">vma_create</span><span class="p">(</span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">vm_start</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">vm_end</span><span class="p">,</span><span class="w"> </span><span class="n">uint_t</span><span class="w"> </span><span class="n">vm_flags</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">vma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kmalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="p">));</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vma</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm_start</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm_end</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm_flags</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">vma</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>在插入一个新的<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>之前，我们要保证它和原有的区间都不重合。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/vmm.c</span>
+<span class="c1">// check_vma_overlap - check if vma1 overlaps vma2 ?</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="nf">check_vma_overlap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">prev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">next</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">prev</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">prev</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">prev</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">next</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">next</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">next</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="p">);</span><span class="c1">// next 是我们想插入的区间，这里顺便检验了start &lt; end</span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>我们可以插入一个新的<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>, 也可以查找某个虚拟地址对应的<code class="docutils literal notranslate"><span class="pre">vma_struct</span></code>是否存在。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/vmm.c</span>
+
+<span class="c1">// insert_vma_struct -insert vma in mm&#39;s list link</span>
+<span class="kt">void</span><span class="w"></span>
+<span class="nf">insert_vma_struct</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">vma</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">mmap_list</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">le_prev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">le_next</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">        </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">le</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">le</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list_next</span><span class="p">(</span><span class="n">le</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">list</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mmap_prev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">le2vma</span><span class="p">(</span><span class="n">le</span><span class="p">,</span><span class="w"> </span><span class="n">list_link</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">mmap_prev</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="n">le_prev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">le</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">	</span><span class="c1">//保证插入后所有vma_struct按照区间左端点有序排列</span>
+<span class="w">    </span><span class="n">le_next</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list_next</span><span class="p">(</span><span class="n">le_prev</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="cm">/* check overlap */</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">le_prev</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">list</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">check_vma_overlap</span><span class="p">(</span><span class="n">le2vma</span><span class="p">(</span><span class="n">le_prev</span><span class="p">,</span><span class="w"> </span><span class="n">list_link</span><span class="p">),</span><span class="w"> </span><span class="n">vma</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">le_next</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">list</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">check_vma_overlap</span><span class="p">(</span><span class="n">vma</span><span class="p">,</span><span class="w"> </span><span class="n">le2vma</span><span class="p">(</span><span class="n">le_next</span><span class="p">,</span><span class="w"> </span><span class="n">list_link</span><span class="p">));</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_mm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_add_after</span><span class="p">(</span><span class="n">le_prev</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="p">(</span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">list_link</span><span class="p">));</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">map_count</span><span class="w"> </span><span class="o">++</span><span class="p">;</span><span class="c1">//计数器</span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// find_vma - find a vma  (vma-&gt;vm_start &lt;= addr &lt;= vma_vm_end)</span>
+<span class="c1">//如果返回NULL，说明查询的虚拟地址不存在/不合法，既不对应内存里的某个页，也不对应硬盘里某个可以换进来的页</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="w"></span>
+<span class="n">find_vma</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">vma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">mm</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">vma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">mmap_cache</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">vma</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">addr</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">addr</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="kt">bool</span><span class="w"> </span><span class="n">found</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">                </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">mmap_list</span><span class="p">),</span><span class="w"> </span><span class="o">*</span><span class="n">le</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list</span><span class="p">;</span><span class="w"></span>
+<span class="w">                </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">le</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list_next</span><span class="p">(</span><span class="n">le</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">list</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                    </span><span class="n">vma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">le2vma</span><span class="p">(</span><span class="n">le</span><span class="p">,</span><span class="w"> </span><span class="n">list_link</span><span class="p">);</span><span class="w"></span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="o">&lt;=</span><span class="n">addr</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">addr</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                        </span><span class="n">found</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">                        </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">                    </span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">found</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                    </span><span class="n">vma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">                </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vma</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">mmap_cache</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vma</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">vma</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>如果此时发生Page Fault怎么办？我们可以回顾之前的异常处理部分的知识。我们的<code class="docutils literal notranslate"><span class="pre">trapFrame</span></code>传递了<code class="docutils literal notranslate"><span class="pre">badvaddr</span></code>给<code class="docutils literal notranslate"><span class="pre">do_pgfault()</span></code>函数，而这实际上是<code class="docutils literal notranslate"><span class="pre">stval</span></code>这个寄存器的数值（在旧版的RISCV标准里叫做<code class="docutils literal notranslate"><span class="pre">sbadvaddr</span></code>)，这个寄存器存储一些关于异常的数据，对于<code class="docutils literal notranslate"><span class="pre">PageFault</span></code>它存储的是访问出错的虚拟地址。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/trap/trap.c</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">pgfault_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">check_mm_struct</span><span class="p">;</span><span class="c1">//当前使用的mm_struct的指针，在vmm.c定义</span>
+<span class="w">    </span><span class="n">print_pgfault</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">check_mm_struct</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">do_pgfault</span><span class="p">(</span><span class="n">check_mm_struct</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">badvaddr</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;unhandled page fault.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="c1">// kern/mm/vmm.c</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">check_mm_struct</span><span class="p">;</span><span class="w"></span>
+
+<span class="c1">// check_pgfault - check correctness of pgfault handler</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="nf">check_pgfault</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">	</span><span class="cm">/* ...... */</span><span class="w"></span>
+<span class="w">    </span><span class="n">check_mm_struct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm_create</span><span class="p">();</span><span class="w"></span>
+<span class="w">	</span><span class="cm">/* ...... */</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">do_pgfault()</span></code>函数在<code class="docutils literal notranslate"><span class="pre">vmm.c</span></code>定义，是页面置换机制的核心。如果过程可行，没有错误值返回，我们就可对页表做对应的修改，通过加入对应的页表项，并把硬盘上的数据换进内存，这时还可能涉及到要把内存里的一个页换出去，而<code class="docutils literal notranslate"><span class="pre">do_pgfault()</span></code>函数就实现了这些功能。如果你对这部分内容相当了解的话，那可以说你对于页面置换机制的掌握程度已经很棒了。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/vmm.c</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">do_pgfault</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">uint_t</span><span class="w"> </span><span class="n">error_code</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//addr: 访问出错的虚拟地址</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//try to find a vma which include addr</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">vma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">find_vma</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span><span class="w"></span>
+<span class="w">	</span><span class="c1">//我们首先要做的就是在mm_struct里判断这个虚拟地址是否可用</span>
+<span class="w">    </span><span class="n">pgfault_num</span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//If the addr is not in the range of a mm&#39;s vma?</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vma</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">addr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;not valid addr %x, and  can not find it in vma</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">goto</span><span class="w"> </span><span class="n">failed</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="cm">/* IF (write an existed addr ) OR</span>
+<span class="cm">     *    (write an non_existed addr &amp;&amp; addr is writable) OR</span>
+<span class="cm">     *    (read  an non_existed addr &amp;&amp; addr is readable)</span>
+<span class="cm">     * THEN</span>
+<span class="cm">     *    continue process</span>
+<span class="cm">     */</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">perm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PTE_U</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_flags</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">VM_WRITE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">perm</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="p">(</span><span class="n">PTE_R</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">PTE_W</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">addr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ROUNDDOWN</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"> </span><span class="c1">//按照页面大小把地址对齐</span>
+
+<span class="w">    </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">E_NO_MEM</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="o">=</span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w">  </span><span class="c1">//(1) try to find a pte, if pte&#39;s</span>
+<span class="w">                                         </span><span class="c1">//PT(Page Table) isn&#39;t existed, then</span>
+<span class="w">                                         </span><span class="c1">//create a PT.</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">pgdir_alloc_page</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">perm</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;pgdir_alloc_page in do_pgfault failed</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="k">goto</span><span class="w"> </span><span class="n">failed</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/*</span>
+<span class="cm">        * Now we think this pte is a  swap entry, we should load data from disk</span>
+<span class="cm">        * to a page with phy addr,</span>
+<span class="cm">        * and map the phy addr with logical addr, trigger swap manager to record</span>
+<span class="cm">        * the access situation of this page.</span>
+<span class="cm">        *</span>
+<span class="cm">        *    swap_in(mm, addr, &amp;page) : alloc a memory page, then according to</span>
+<span class="cm">        * the swap entry in PTE for addr, find the addr of disk page, read the</span>
+<span class="cm">        * content of disk page into this memroy page</span>
+<span class="cm">        * 	page_insert ： build the map of phy addr of an Page with the virtual addr la</span>
+<span class="cm">        *   swap_map_swappable ： set the page swappable</span>
+<span class="cm">        */</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">swap_init_ok</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="c1">//在swap_in()函数执行完之后，page保存换入的物理页面。</span>
+<span class="w">            </span><span class="c1">//swap_in()函数里面可能把内存里原有的页面换出去</span>
+<span class="w">            </span><span class="n">swap_in</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">page</span><span class="p">);</span><span class="w">  </span><span class="c1">//(1）According to the mm AND addr, try</span>
+<span class="w">                                       </span><span class="c1">//to load the content of right disk page</span>
+<span class="w">                                       </span><span class="c1">//into the memory which page managed.</span>
+<span class="w">            </span><span class="n">page_insert</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">perm</span><span class="p">);</span><span class="w"> </span><span class="c1">//更新页表，插入新的页表项</span>
+<span class="w">            </span><span class="c1">//(2) According to the mm, addr AND page, </span>
+<span class="w">            </span><span class="c1">// setup the map of phy addr &lt;---&gt; virtual addr</span>
+<span class="w">            </span><span class="n">swap_map_swappable</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w">  </span><span class="c1">//(3) make the page swappable.</span>
+<span class="w">            </span><span class="c1">//标记这个页面将来是可以再换出的</span>
+<span class="w">            </span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">addr</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;no swap_init_ok but ptep is %x, failed</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="k">goto</span><span class="w"> </span><span class="n">failed</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">   </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">   </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="nl">failed</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>接下来我们看看FIFO页面置换算法是怎么在ucore里实现的。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab3_4_1_page_swapping.html" class="btn btn-neutral float-left" title="页替换算法设计思路" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="lab3_4_3_page_swapping_principles.html" class="btn btn-neutral float-right" title="FIFO页面置换算法" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

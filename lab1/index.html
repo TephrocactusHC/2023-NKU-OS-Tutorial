@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lab1: 断, 都可以断 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="实验目的：" href="lab1-1/lab1_1_goals.html" />
+    <link rel="prev" title="实验报告要求" href="../lab0.5/lab0.5-4/lab0.5_4_requirement.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">lab1: 断, 都可以断</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">本章内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lab1-1/lab1_1_goals.html">实验目的：</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab1-2/index.html">实验目的</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab1-3/index.html">中断与中断处理流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab1-4/lab1_4_lab_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">lab1: 断, 都可以断</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/lab1/index.rst.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="lab1">
+<h1>lab1: 断, 都可以断<a class="headerlink" href="#lab1" title="永久链接至标题"></a></h1>
+<p><em>弱水汩其为难兮，路中断而不通。</em></p>
+<p>现在我们要在最小可执行内核的基础上, 支持中断机制, 并且用时钟中断来检验我们的中断处理系统。</p>
+<section id="id1">
+<span id="id2"></span><h2>本章内容<a class="headerlink" href="#id1" title="永久链接至标题"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lab1-1/lab1_1_goals.html">实验目的：</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lab1-2/index.html">实验目的</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lab1-2/index.html#id2">本节内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lab1-2/lab1_2_1_exercise.html">练习</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_1_exercise.html#id2">练习1：理解内核启动中的程序入口操作</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_1_exercise.html#id3">练习2：完善中断处理 （需要编程）</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_1_exercise.html#challenge1">扩展练习 Challenge1：描述与理解中断流程</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_1_exercise.html#challenge2">扩增练习 Challenge2：理解上下文切换机制</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_1_exercise.html#challenge3">扩展练习Challenge3：完善异常中断</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_1_exercise.html#id4"></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lab1-2/lab1_2_2_files.html">项目组成和执行流</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_2_files.html#lab1">Lab1项目组成</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="lab1-2/lab1_2_2_files.html#id2">硬件驱动层</a></li>
+<li class="toctree-l5"><a class="reference internal" href="lab1-2/lab1_2_2_files.html#id3">初始化</a></li>
+<li class="toctree-l5"><a class="reference internal" href="lab1-2/lab1_2_2_files.html#id4">中断处理</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-2/lab1_2_2_files.html#id5">执行流</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lab1-3/index.html">中断与中断处理流程</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lab1-3/index.html#id2">本节内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html">riscv64 中断介绍</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#id1">中断概念</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#id2">中断机制</a></li>
+<li class="toctree-l5"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#id3"><strong>中断分类</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#id4">riscv64 权限模式</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#riscv64-m-mode">riscv64 的 M Mode</a></li>
+<li class="toctree-l5"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#riscv64-s-mode">riscv64 的 S Mode</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#id5">寄存器</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab1-3/lab1_3_1_introduce.html#id6">特权指令</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lab1-3/lab1_3_2_trapentry.html">掉进兔子洞(中断入口点)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab1-3/lab1_3_3_trap.html">中断处理程序</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab1-3/lab1_3_4_clock.html">滴答滴答（时钟中断）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lab1-4/lab1_4_lab_requirement.html">实验报告要求</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="../lab0.5/lab0.5-4/lab0.5_4_requirement.html" class="btn btn-neutral float-left" title="实验报告要求" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="lab1-1/lab1_1_goals.html" class="btn btn-neutral float-right" title="实验目的：" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

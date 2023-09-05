@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lab4:进程管理 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="实验内容" href="lab4-2/index.html" />
+    <link rel="prev" title="实验报告要求" href="../lab3/lab3-5/lab3_5_labs_requirement.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">lab4:进程管理</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">本章内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lab4-2/index.html">实验内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/index.html">内核线程管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-4/lab4_4_labs_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">lab4:进程管理</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/lab4/index.rst.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="lab4">
+<h1>lab4:进程管理<a class="headerlink" href="#lab4" title="永久链接至标题"></a></h1>
+<p>实验2/3完成了物理和虚拟内存管理，这给创建内核线程（内核线程是一种特殊的进程）打下了提供内存管理的基础。当一个程序加载到内存中运行时，首先通过ucore OS的内存管理子系统分配合适的空间，然后就需要考虑如何分时使用CPU来“并发”执行多个程序，让每个运行的程序（这里用线程或进程表示）“感到”它们各自拥有“自己”的CPU。
+.. _本章内容:</p>
+<section id="id1">
+<h2>本章内容<a class="headerlink" href="#id1" title="永久链接至标题"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lab4-2/index.html">实验内容</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lab4-2/index.html#id2">提前说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab4-2/index.html#id3">本节内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lab4-2/lab4_2_1_exercises.html">练习</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lab4-2/lab4_2_1_exercises.html#id2">练习0：填写已有实验</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab4-2/lab4_2_1_exercises.html#id3">练习1：分配并初始化一个进程控制块（需要编码）</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab4-2/lab4_2_1_exercises.html#id4">练习2：为新创建的内核线程分配资源（需要编码）</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab4-2/lab4_2_1_exercises.html#proc-run">练习3：编写proc_run 函数（需要编码）</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab4-2/lab4_2_1_exercises.html#challenge">扩展练习 Challenge：</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-2/lab4_2_2_files.html">项目组成</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lab4-3/index.html">内核线程管理</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lab4-3/index.html#id2">进程与线程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab4-3/index.html#id4">我们为什么需要进程</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lab4-3/index.html#id6">本节内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/lab4_3_1_lab_steps.html">实验执行流程概述</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lab4-3/lab4_3_1_lab_steps.html#idle">idle进程创建</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab4-3/lab4_3_1_lab_steps.html#id2">第一个内核线程的初始化</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/lab4_3_1_lab_steps.html#pcb">PCB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/lab4_3_2_pcb.html">设计关键数据结构</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lab4-3/lab4_3_2_pcb.html#id2">进程控制块</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lab4-3/lab4_3_2_pcb.html#id3">进程上下文</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/lab4_3_3_create_exec_kernel_thread.html">创建并执行内核线程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/lab4_3_3_1_create_kthread_idleproc.html">创建第 0 个内核线程 idleproc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/lab4_3_3_2_create_kthread_initproc.html">创建第 1 个内核线程 initproc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lab4-3/lab4_3_3_3_sched_run_kthread.html">调度并执行内核线程 initproc</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lab4-4/lab4_4_labs_requirement.html">实验报告要求</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="../lab3/lab3-5/lab3_5_labs_requirement.html" class="btn btn-neutral float-left" title="实验报告要求" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="lab4-2/index.html" class="btn btn-neutral float-right" title="实验内容" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

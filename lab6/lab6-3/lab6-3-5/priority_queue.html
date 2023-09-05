@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>使用优先队列实现 Stride Scheduling &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/translations.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../../genindex.html" />
+    <link rel="search" title="搜索" href="../../../search.html" />
+    <link rel="next" title="附录：执行make qemu的大致输出" href="../../lab6-4/appendix.html" />
+    <link rel="prev" title="基本思路" href="base_method.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">lab6 进程调度</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../lab6-1/goals.html">实验目的</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../lab6-2/index.html">实验内容</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html">调度框架和调度算法设计与实现</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../lab6-4/appendix.html">附录：执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>的大致输出</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">lab6 进程调度</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">调度框架和调度算法设计与实现</a></li>
+          <li class="breadcrumb-item"><a href="index.html">stride调度算法</a></li>
+      <li class="breadcrumb-item active">使用优先队列实现 Stride Scheduling</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/lab6/lab6-3/lab6-3-5/priority_queue.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="stride-scheduling">
+<h1>使用优先队列实现 Stride Scheduling<a class="headerlink" href="#stride-scheduling" title="永久链接至标题"></a></h1>
+<p>在上述的实现描述中，对于每一次pick_next函数，我们都需要完整地扫描来获得当前最小的stride及其进程。这在进程非常多的时候是非常耗时和低效的，有兴趣的同学可以在实现了基于列表扫描的Stride调度器之后比较一下priority程序在Round-Robin及Stride调度器下各自的运行时间。考虑到其调度选择于优先队列的抽象逻辑一致，我们考虑使用优化的优先队列数据结构实现该调度。</p>
+<p>优先队列是这样一种数据结构：使用者可以快速的插入和删除队列中的元素，并且在预先指定的顺序下快速取得当前在队列中的最小（或者最大）值及其对应元素。可以看到，这样的数据结构非常符合 Stride 调度器的实现。</p>
+<p>本次实验提供了libs/skew_heap.h作为优先队列的一个实现，该实现定义相关的结构和接口，其中主要包括：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>1   // 优先队列节点的结构
+2   typedef struct skew_heap_entry  skew_heap_entry_t;
+3   // 初始化一个队列节点
+4   void skew_heap_init(skew_heap_entry_t *a);
+5   // 将节点 b 插入至以节点 a 为队列头的队列中去，返回插入后的队列
+6   skew_heap_entry_t  *skew_heap_insert(skew_heap_entry_t  *a,
+7                                        skew_heap_entry_t  *b,
+8                                        compare_f comp);
+9   // 将节点 b 插入从以节点 a 为队列头的队列中去，返回删除后的队列
+10      skew_heap_entry_t  *skew_heap_remove(skew_heap_entry_t  *a,
+11                                           skew_heap_entry_t  *b,
+12                                           compare_f comp);
+</pre></div>
+</div>
+<p>其中优先队列的顺序是由比较函数comp决定的，sched_stride.c中提供了proc_stride_comp_f比较器用来比较两个stride的大小，你可以直接使用它。当使用优先队列作为Stride调度器的实现方式之后，运行队列结构也需要作相关改变，其中包括：</p>
+<ul class="simple">
+<li><p>struct run_queue中的lab6_run_pool指针，在使用优先队列的实现中表示当前优先队列的头元素，如果优先队列为空，则其指向空指针（NULL）。</p></li>
+<li><p>struct proc_struct中的lab6_run_pool结构，表示当前进程对应的优先队列节点。本次实验已经修改了系统相关部分的代码，使得其能够很好地适应LAB6新加入的数据结构和接口。而在实验中我们需要做的是用优先队列实现一个正确和高效的Stride调度器，如果用较简略的伪代码描述，则有：</p></li>
+<li><p>init(rq):</p>
+<ul>
+<li><p>Initialize rq-&gt;run_list</p></li>
+<li><p>Set rq-&gt;lab6_run_pool to NULL</p></li>
+<li><p>Set rq-&gt;proc_num to 0</p></li>
+</ul>
+</li>
+<li><p>enqueue(rq, proc)</p>
+<ul>
+<li><p>Initialize proc-&gt;time_slice</p></li>
+<li><p>Insert proc-&gt;lab6_run_pool into rq-&gt;lab6_run_pool</p></li>
+<li><p>rq-&gt;proc_num ++</p></li>
+</ul>
+</li>
+<li><p>dequeue(rq, proc)</p>
+<ul>
+<li><p>Remove proc-&gt;lab6_run_pool from rq-&gt;lab6_run_pool</p></li>
+<li><p>rq-&gt;proc_num –</p></li>
+</ul>
+</li>
+<li><p>pick_next(rq)</p>
+<ul>
+<li><p>If rq-&gt;lab6_run_pool == NULL, return NULL</p></li>
+<li><p>Find the proc corresponding to the pointer rq-&gt;lab6_run_pool</p></li>
+<li><p>proc-&gt;lab6_stride += BIG_STRIDE / proc-&gt;lab6_priority</p></li>
+<li><p>Return proc</p></li>
+</ul>
+</li>
+<li><p>proc_tick(rq, proc):</p>
+<ul>
+<li><p>If proc-&gt;time_slice &gt; 0, proc-&gt;time_slice –</p></li>
+<li><p>If proc-&gt;time_slice == 0, set the flag proc-&gt;need_resched</p></li>
+</ul>
+</li>
+</ul>
+<p>大家可以根据上述伪代码，完成本次实验练习2。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="base_method.html" class="btn btn-neutral float-left" title="基本思路" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../../lab6-4/appendix.html" class="btn btn-neutral float-right" title="附录：执行make qemu的大致输出" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

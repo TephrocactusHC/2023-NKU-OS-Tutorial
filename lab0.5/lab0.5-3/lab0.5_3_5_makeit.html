@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Just make it &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="实验报告要求" href="../lab0.5-4/lab0.5_4_requirement.html" />
+    <link rel="prev" title="从SBI到stdio" href="lab0.5_3_4_sbi_io.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-1/lab0.5_1_goals.html">实验目的：</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-2/index.html">实验内容</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">从机器启动到操作系统运行的过程</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-4/lab0.5_4_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+          <li class="breadcrumb-item"><a href="index.html">从机器启动到操作系统运行的过程</a></li>
+      <li class="breadcrumb-item active">Just make it</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab0.5/lab0.5-3/lab0.5_3_5_makeit.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="just-make-it">
+<h1>Just make it<a class="headerlink" href="#just-make-it" title="永久链接至标题"></a></h1>
+<p>我们需要：编译所有的源代码，把目标文件链接起来，生成elf文件，生成bin硬盘镜像，用qemu跑起来</p>
+<p>这一系列复杂的命令，我们不想每次用到的时候都敲一遍，所以我们使用~~<u><em>魔改的</em></u>~~~~祖传~~<code class="docutils literal notranslate"><span class="pre">Makefile</span></code>。</p>
+<section id="make-makefile">
+<h2>make 和  Makefile<a class="headerlink" href="#make-makefile" title="永久链接至标题"></a></h2>
+<p>GNU make(简称make)是一种代码维护工具，在大中型项目中，它将根据程序各个模块的更新情况，自动的维护和生成目标代码。</p>
+<p>make命令执行时，需要一个 makefile （或Makefile）文件，以告诉make命令需要怎么样的去编译和链接程序</p>
+<p>我们的<code class="docutils literal notranslate"><span class="pre">Makefile</span></code>还依赖<code class="docutils literal notranslate"><span class="pre">tools/function.mk</span></code>。只要我们的makefile写得够好，所有的这一切，我们只用一个make命令就可以完成，make命令会自动智能地根据当前的文件修改的情况来确定哪些文件需要重编译，从而自己编译所需要的文件和链接目标程序。</p>
+<section id="makefile">
+<h3>makefile的基本规则简介<a class="headerlink" href="#makefile" title="永久链接至标题"></a></h3>
+<p>在使用这个makefile之前，还是让我们先来粗略地看一看makefile的规则。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">target</span> <span class="o">...</span> <span class="p">:</span> <span class="n">prerequisites</span> <span class="o">...</span>
+	<span class="n">command</span>
+	<span class="o">...</span>
+	<span class="o">...</span>
+</pre></div>
+</div>
+<p>target也就是一个目标文件，可以是object file，也可以是执行文件。还可以是一个标签（label）。prerequisites就是，要生成那个target所需要的文件或是目标。command也就是make需要执行的命令（任意的shell命令）。 这是一个文件的依赖关系，也就是说，target这一个或多个的目标文件依赖于prerequisites中的文件，其生成规则定义在 command中。如果prerequisites中有一个以上的文件比target文件要新，那么command所定义的命令就会被执行。这就是makefile的规则。也就是makefile中最核心的内容</p>
+</section>
+</section>
+<section id="runing-ucore">
+<h2>Runing ucore<a class="headerlink" href="#runing-ucore" title="永久链接至标题"></a></h2>
+<p>在源代码的根目录下<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>, 在makefile中运行的代码为</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nf">.PHONY</span><span class="o">:</span> <span class="n">qemu</span> 
+<span class="nf">qemu</span><span class="o">:</span> <span class="k">$(</span><span class="nv">UCOREIMG</span><span class="k">)</span> <span class="k">$(</span><span class="nv">SWAPIMG</span><span class="k">)</span> <span class="k">$(</span><span class="nv">SFSIMG</span><span class="k">)</span>
+<span class="c">#	$(V)$(QEMU) -kernel $(UCOREIMG) -nographic</span>
+	<span class="k">$(</span>V<span class="k">)$(</span>QEMU<span class="k">)</span> <span class="se">\</span>
+		-machine virt <span class="se">\</span>
+		-nographic <span class="se">\</span>
+		-bios default <span class="se">\</span>
+		-device loader,file<span class="o">=</span><span class="k">$(</span>UCOREIMG<span class="k">)</span>,addr<span class="o">=</span>0x80200000
+</pre></div>
+</div>
+<p>这段代码就是我们启动qemu的命令，这段代码首先通过宏定义$(UCOREIMG) $(SWAPIMG) $(SFSIMG)的函数进行目标文件的构建，然后使用qemu语句进行qemu启动加载内核。,我们就把ucore跑起来了，运行结果如下。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+</span> <span class="n">cc</span> <span class="n">kern</span><span class="o">/</span><span class="n">init</span><span class="o">/</span><span class="n">init</span><span class="o">.</span><span class="n">c</span>
+<span class="o">+</span> <span class="n">cc</span> <span class="n">libs</span><span class="o">/</span><span class="n">sbi</span><span class="o">.</span><span class="n">c</span>
+<span class="o">+</span> <span class="n">ld</span> <span class="nb">bin</span><span class="o">/</span><span class="n">kernel</span>
+<span class="n">riscv64</span><span class="o">-</span><span class="n">unknown</span><span class="o">-</span><span class="n">elf</span><span class="o">-</span><span class="n">objcopy</span> <span class="nb">bin</span><span class="o">/</span><span class="n">kernel</span> <span class="o">--</span><span class="n">strip</span><span class="o">-</span><span class="nb">all</span> <span class="o">-</span><span class="n">O</span> <span class="n">binary</span> <span class="nb">bin</span><span class="o">/</span><span class="n">ucore</span><span class="o">.</span><span class="n">img</span>
+
+<span class="n">OpenSBI</span> <span class="n">v0</span><span class="mf">.6</span>
+   <span class="n">____</span>                    <span class="n">_____</span> <span class="n">____</span> <span class="n">_____</span>
+  <span class="o">/</span> <span class="n">__</span> \                  <span class="o">/</span> <span class="n">____</span><span class="o">|</span>  <span class="n">_</span> \<span class="n">_</span>   <span class="n">_</span><span class="o">|</span>
+ <span class="o">|</span> <span class="o">|</span>  <span class="o">|</span> <span class="o">|</span><span class="n">_</span> <span class="n">__</span>   <span class="n">___</span> <span class="n">_</span> <span class="n">__</span> <span class="o">|</span> <span class="p">(</span><span class="n">___</span> <span class="o">|</span> <span class="o">|</span><span class="n">_</span><span class="p">)</span> <span class="o">||</span> <span class="o">|</span>
+ <span class="o">|</span> <span class="o">|</span>  <span class="o">|</span> <span class="o">|</span> <span class="s1">&#39;_ \ / _ \ &#39;</span><span class="n">_</span> \ \<span class="n">___</span> \<span class="o">|</span>  <span class="n">_</span> <span class="o">&lt;</span> <span class="o">|</span> <span class="o">|</span>
+ <span class="o">|</span> <span class="o">|</span><span class="n">__</span><span class="o">|</span> <span class="o">|</span> <span class="o">|</span><span class="n">_</span><span class="p">)</span> <span class="o">|</span>  <span class="n">__</span><span class="o">/</span> <span class="o">|</span> <span class="o">|</span> <span class="o">|</span><span class="n">____</span><span class="p">)</span> <span class="o">|</span> <span class="o">|</span><span class="n">_</span><span class="p">)</span> <span class="o">||</span> <span class="o">|</span><span class="n">_</span>
+  \<span class="n">____</span><span class="o">/|</span> <span class="o">.</span><span class="n">__</span><span class="o">/</span> \<span class="n">___</span><span class="o">|</span><span class="n">_</span><span class="o">|</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span><span class="n">_____</span><span class="o">/|</span><span class="n">____</span><span class="o">/</span><span class="n">_____</span><span class="o">|</span>
+        <span class="o">|</span> <span class="o">|</span>
+        <span class="o">|</span><span class="n">_</span><span class="o">|</span>
+
+<span class="n">Platform</span> <span class="n">Name</span>          <span class="p">:</span> <span class="n">QEMU</span> <span class="n">Virt</span> <span class="n">Machine</span>
+<span class="n">Platform</span> <span class="n">HART</span> <span class="n">Features</span> <span class="p">:</span> <span class="n">RV64ACDFIMSU</span>
+<span class="n">Platform</span> <span class="n">Max</span> <span class="n">HARTs</span>     <span class="p">:</span> <span class="mi">8</span>
+<span class="n">Current</span> <span class="n">Hart</span>           <span class="p">:</span> <span class="mi">0</span>
+<span class="n">Firmware</span> <span class="n">Base</span>          <span class="p">:</span> <span class="mh">0x80000000</span>
+<span class="n">Firmware</span> <span class="n">Size</span>          <span class="p">:</span> <span class="mi">120</span> <span class="n">KB</span>
+<span class="n">Runtime</span> <span class="n">SBI</span> <span class="n">Version</span>    <span class="p">:</span> <span class="mf">0.2</span>
+
+<span class="n">MIDELEG</span> <span class="p">:</span> <span class="mh">0x0000000000000222</span>
+<span class="n">MEDELEG</span> <span class="p">:</span> <span class="mh">0x000000000000b109</span>
+<span class="n">PMP0</span>    <span class="p">:</span> <span class="mh">0x0000000080000000</span><span class="o">-</span><span class="mh">0x000000008001ffff</span> <span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="n">PMP1</span>    <span class="p">:</span> <span class="mh">0x0000000000000000</span><span class="o">-</span><span class="mh">0xffffffffffffffff</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">W</span><span class="p">,</span><span class="n">X</span><span class="p">)</span>
+<span class="p">(</span><span class="n">THU</span><span class="o">.</span><span class="n">CST</span><span class="p">)</span> <span class="n">os</span> <span class="ow">is</span> <span class="n">loading</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>它输出一行<code class="docutils literal notranslate"><span class="pre">(THU.CST)</span> <span class="pre">os</span> <span class="pre">is</span> <span class="pre">loading</span></code>, 然后进入死循环。</p>
+<p>目前为止的代码可以在<a class="reference external" href="https://github.com/Liurunda/riscv64-ucore/tree/lab0/lab0">这里</a>找到，遇到困难可以参考。</p>
+<p><strong>tips:</strong></p>
+<ul class="simple">
+<li><p>关于Makefile的语法, 如果不熟悉, 可以查看GNU手册, 或者这份中文教程: https://seisman.github.io/how-to-write-makefile/overview.html</p></li>
+<li><p>对实验中Makefile感兴趣的同学可以阅读附录中的<a class="reference external" href="../appendix/1_makefile">Makefile</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab0.5_3_4_sbi_io.html" class="btn btn-neutral float-left" title="从SBI到stdio" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab0.5-4/lab0.5_4_requirement.html" class="btn btn-neutral float-right" title="实验报告要求" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

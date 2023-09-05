@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>使用多级页表实现虚拟存储 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="处理缺页异常（page fault异常）" href="lab3_3_6_page_fault_handler.html" />
+    <link rel="prev" title="页表项设计思路" href="lab3_3_4_page_table_entry.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab3:缺页异常和页面置换</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab3-1/lab3_1_goals.html">实验目的</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab3-2/index.html">实验内容</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">虚拟内存管理</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab3-4/index.html">页面置换机制的实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab3-5/lab3_5_labs_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab3:缺页异常和页面置换</a></li>
+          <li class="breadcrumb-item"><a href="index.html">虚拟内存管理</a></li>
+      <li class="breadcrumb-item active">使用多级页表实现虚拟存储</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab3/lab3-3/lab3_3_5_multilevel_page_tables.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>使用多级页表实现虚拟存储<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>要想实现虚拟存储，我们需要把页表放在内存里，并且需要有办法修改页表，比如在页表里增加一个页面的映射或者删除某个页面的映射。</p>
+<p>要想实现页面映射，我们最主要需要修改的是两个接口：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">page_insert()</span></code>，在页表里建立一个映射</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">page_remove()</span></code>，在页表里删除一个映射</p></li>
+</ul>
+<p>这些内容都需要在<code class="docutils literal notranslate"><span class="pre">kern/mm/pmm.c</span></code>里面编写。然后我们可以在虚拟内存空间的第一个大大页(Giga Page)中建立一些映射来做测试。通过编写<code class="docutils literal notranslate"><span class="pre">page_ref()</span></code>函数用来检查映射关系是否实现，这个函数会返回一个物理页面被多少个虚拟页面所对应。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">check_pgdir</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// assert(npage &lt;= KMEMSIZE / PGSIZE);</span>
+<span class="w">    </span><span class="c1">// The memory starts at 2GB in RISC-V</span>
+<span class="w">    </span><span class="c1">// so npage is always larger than KMEMSIZE / PGSIZE</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">npage</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">KERNTOP</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//boot_pgdir是页表的虚拟地址</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="n">PGOFF</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">get_page</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//get_page()尝试找到虚拟内存0x0对应的页，现在当然是没有的，返回NULL</span>
+
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">p1</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">p2</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">p1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc_page</span><span class="p">();</span><span class="c1">//拿过来一个物理页面</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_insert</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">p1</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="c1">//把这个物理页面通过多级页表映射到0x0</span>
+<span class="w">    </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">((</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">pte2page</span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">p1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">KADDR</span><span class="p">(</span><span class="n">PDE_ADDR</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span><span class="w"></span>
+<span class="w">    </span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">KADDR</span><span class="p">(</span><span class="n">PDE_ADDR</span><span class="p">(</span><span class="n">ptep</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">get_pte</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ptep</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//get_pte查找某个虚拟地址对应的页表项，如果不存在这个页表项，会为它分配各级的页表</span>
+
+<span class="w">    </span><span class="n">p2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc_page</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_insert</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">p2</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">,</span><span class="w"> </span><span class="n">PTE_U</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">PTE_W</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">((</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_U</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_W</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_U</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_insert</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">p1</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">((</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">pte2page</span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">p1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">((</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_U</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">page_remove</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">page_remove</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">p2</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">pde2page</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">free_page</span><span class="p">(</span><span class="n">pde2page</span><span class="p">(</span><span class="n">boot_pgdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span><span class="w"></span>
+<span class="w">    </span><span class="n">boot_pgdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="c1">//清除测试的痕迹</span>
+
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;check_pgdir() succeeded!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>在映射关系建立完成后，如何新增一个映射关系和删除一个映射关系也是非常重要的内容，我们来看<code class="docutils literal notranslate"><span class="pre">page_insert(),page_remove()</span></code>的实现。它们都涉及到调用两个对页表项进行操作的函数：<code class="docutils literal notranslate"><span class="pre">get_pte()</span></code>和<code class="docutils literal notranslate"><span class="pre">page_remove_pte()</span></code></p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">page_insert</span><span class="p">(</span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">la</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">perm</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">	</span><span class="c1">//pgdir是页表基址(satp)，page对应物理页面，la是虚拟地址</span>
+<span class="w">    </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">la</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//先找到对应页表项的位置，如果原先不存在，get_pte()会分配页表项的内存</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ptep</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_NO_MEM</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">page_ref_inc</span><span class="p">(</span><span class="n">page</span><span class="p">);</span><span class="c1">//指向这个物理页面的虚拟地址增加了一个</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//原先存在映射</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pte2page</span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">p</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="c1">//如果这个映射原先就有</span>
+<span class="w">            </span><span class="n">page_ref_dec</span><span class="p">(</span><span class="n">page</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="c1">//如果原先这个虚拟地址映射到其他物理页面，那么需要删除映射</span>
+<span class="w">            </span><span class="n">page_remove_pte</span><span class="p">(</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">la</span><span class="p">,</span><span class="w"> </span><span class="n">ptep</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pte_create</span><span class="p">(</span><span class="n">page2ppn</span><span class="p">(</span><span class="n">page</span><span class="p">),</span><span class="w"> </span><span class="n">PTE_V</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">perm</span><span class="p">);</span><span class="c1">//构造页表项</span>
+<span class="w">    </span><span class="n">tlb_invalidate</span><span class="p">(</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">la</span><span class="p">);</span><span class="c1">//页表改变之后要刷新TLB</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">page_remove</span><span class="p">(</span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">la</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">la</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="c1">//找到页表项所在位置</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ptep</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">page_remove_pte</span><span class="p">(</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">la</span><span class="p">,</span><span class="w"> </span><span class="n">ptep</span><span class="p">);</span><span class="c1">//删除这个页表项的映射</span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="c1">//删除一个页表项以及它的映射</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">page_remove_pte</span><span class="p">(</span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">la</span><span class="p">,</span><span class="w"> </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">  </span><span class="c1">//(1) check if this page table entry is valid</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pte2page</span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="p">);</span><span class="w">  </span><span class="c1">//(2) find corresponding page to pte</span>
+<span class="w">        </span><span class="n">page_ref_dec</span><span class="p">(</span><span class="n">page</span><span class="p">);</span><span class="w">   </span><span class="c1">//(3) decrease page reference</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">page_ref</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">  </span>
+<span class="w">            </span><span class="c1">//(4) and free this page when page reference reachs 0</span>
+<span class="w">            </span><span class="n">free_page</span><span class="p">(</span><span class="n">page</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">                  </span><span class="c1">//(5) clear page table entry</span>
+<span class="w">        </span><span class="n">tlb_invalidate</span><span class="p">(</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">la</span><span class="p">);</span><span class="w">  </span><span class="c1">//(6) flush tlb</span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="c1">//寻找(有必要的时候分配)一个页表项</span>
+<span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="nf">get_pte</span><span class="p">(</span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">la</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">create</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* LAB2 EXERCISE 2: YOUR CODE</span>
+<span class="cm">     *</span>
+<span class="cm">     * If you need to visit a physical address, please use KADDR()</span>
+<span class="cm">     * please read pmm.h for useful macros</span>
+<span class="cm">     *</span>
+<span class="cm">     * Maybe you want help comment, BELOW comments can help you finish the code</span>
+<span class="cm">     *</span>
+<span class="cm">     * Some Useful MACROs and DEFINEs, you can use them in below implementation.</span>
+<span class="cm">     * MACROs or Functions:</span>
+<span class="cm">     *   PDX(la) = the index of page directory entry of VIRTUAL ADDRESS la.</span>
+<span class="cm">     *   KADDR(pa) : takes a physical address and returns the corresponding</span>
+<span class="cm">     * kernel virtual address.</span>
+<span class="cm">     *   set_page_ref(page,1) : means the page be referenced by one time</span>
+<span class="cm">     *   page2pa(page): get the physical address of memory which this (struct</span>
+<span class="cm">     * Page *) page  manages</span>
+<span class="cm">     *   struct Page * alloc_page() : allocation a page</span>
+<span class="cm">     *   memset(void *s, char c, size_t n) : sets the first n bytes of the</span>
+<span class="cm">     * memory area pointed by s</span>
+<span class="cm">     *                                       to the specified value c.</span>
+<span class="cm">     * DEFINEs:</span>
+<span class="cm">     *   PTE_P           0x001                   // page table/directory entry</span>
+<span class="cm">     * flags bit : Present</span>
+<span class="cm">     *   PTE_W           0x002                   // page table/directory entry</span>
+<span class="cm">     * flags bit : Writeable</span>
+<span class="cm">     *   PTE_U           0x004                   // page table/directory entry</span>
+<span class="cm">     * flags bit : User can access</span>
+<span class="cm">     */</span><span class="w"></span>
+<span class="w">    </span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="n">pdep1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pgdir</span><span class="p">[</span><span class="n">PDX1</span><span class="p">(</span><span class="n">la</span><span class="p">)];</span><span class="c1">//找到对应的Giga Page</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="o">*</span><span class="n">pdep1</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="c1">//如果下一级页表不存在，那就给它分配一页，创造新页表</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">create</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc_page</span><span class="p">())</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">set_page_ref</span><span class="p">(</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">pa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">page2pa</span><span class="p">(</span><span class="n">page</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">memset</span><span class="p">(</span><span class="n">KADDR</span><span class="p">(</span><span class="n">pa</span><span class="p">),</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="c1">//我们现在在虚拟地址空间中，所以要转化为KADDR再memset.</span>
+<span class="w">        </span><span class="c1">//不管页表怎么构造，我们确保物理地址和虚拟地址的偏移量始终相同，那么就可以用这种方式完成对物理内存的访问。</span>
+<span class="w">        </span><span class="o">*</span><span class="n">pdep1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pte_create</span><span class="p">(</span><span class="n">page2ppn</span><span class="p">(</span><span class="n">page</span><span class="p">),</span><span class="w"> </span><span class="n">PTE_U</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">);</span><span class="c1">//注意这里R,W,X全零</span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="n">pdep0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="p">((</span><span class="n">pde_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">KADDR</span><span class="p">(</span><span class="n">PDE_ADDR</span><span class="p">(</span><span class="o">*</span><span class="n">pdep1</span><span class="p">)))[</span><span class="n">PDX0</span><span class="p">(</span><span class="n">la</span><span class="p">)];</span><span class="c1">//再下一级页表</span>
+<span class="w">    </span><span class="c1">//这里的逻辑和前面完全一致，页表不存在就现在分配一个</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="o">*</span><span class="n">pdep0</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">create</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc_page</span><span class="p">())</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">set_page_ref</span><span class="p">(</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">pa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">page2pa</span><span class="p">(</span><span class="n">page</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">memset</span><span class="p">(</span><span class="n">KADDR</span><span class="p">(</span><span class="n">pa</span><span class="p">),</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="o">*</span><span class="n">pdep0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pte_create</span><span class="p">(</span><span class="n">page2ppn</span><span class="p">(</span><span class="n">page</span><span class="p">),</span><span class="w"> </span><span class="n">PTE_U</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//找到输入的虚拟地址la对应的页表项的地址(可能是刚刚分配的)</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="p">((</span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">KADDR</span><span class="p">(</span><span class="n">PDE_ADDR</span><span class="p">(</span><span class="o">*</span><span class="n">pdep0</span><span class="p">)))[</span><span class="n">PTX</span><span class="p">(</span><span class="n">la</span><span class="p">)];</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>在<code class="docutils literal notranslate"><span class="pre">entry.S</span></code>里，我们虽然构造了一个简单映射使得内核能够运行在虚拟空间上，但是这个映射是比较粗糙的。</p>
+<p>我们知道一个程序通常含有下面几段：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.text</span></code>段：存放代码，需要是可读、可执行的，但不可写。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.rodata</span></code> 段：存放只读数据，顾名思义，需要可读，但不可写亦不可执行。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.data</span></code> 段：存放经过初始化的数据，需要可读、可写。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.bss</span></code>段：存放经过零初始化的数据，需要可读、可写。与 <code class="docutils literal notranslate"><span class="pre">.data</span></code> 段的区别在于由于我们知道它被零初始化，因此在可执行文件中可以只存放该段的开头地址和大小而不用存全为 0的数据。在执行时由操作系统进行处理。</p></li>
+</ul>
+<p>我们看到各个段需要的访问权限是不同的。但是现在使用一个大大页(Giga Page)进行映射时，它们都拥有相同的权限，那么在现在的映射下，我们甚至可以修改内核 <code class="docutils literal notranslate"><span class="pre">.text</span></code> 段的代码，因为我们通过一个标志位 <code class="docutils literal notranslate"><span class="pre">W=1</span></code> 的页表项就可以完成映射，但这显然会带来安全隐患。</p>
+<p>因此，我们考虑对这些段分别进行重映射，使得他们的访问权限可以被正确设置。虽然还是每个段都还是映射以同样的偏移量映射到相同的地方，但实现过程需要更加精细。</p>
+<p>这里还有一个小坑：对于我们最开始已经用特殊方式映射的一个大大页(Giga Page)，该怎么对那里面的地址重新进行映射？这个过程比较麻烦。但大家可以基本理解为放弃现有的页表，直接新建一个页表，在新页表里面完成重映射，然后把satp指向新的页表，这样就实现了重新映射。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab3_3_4_page_table_entry.html" class="btn btn-neutral float-left" title="页表项设计思路" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="lab3_3_6_page_fault_handler.html" class="btn btn-neutral float-right" title="处理缺页异常（page fault异常）" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

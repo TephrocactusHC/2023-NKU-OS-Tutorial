@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lab0 项目组成和执行流 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="从机器启动到操作系统运行的过程" href="../lab0.5-3/index.html" />
+    <link rel="prev" title="练习" href="lab0.5_2_1_exercise.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-1/lab0.5_1_goals.html">实验目的：</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">实验内容</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-3/index.html">从机器启动到操作系统运行的过程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-4/lab0.5_4_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+          <li class="breadcrumb-item"><a href="index.html">实验内容</a></li>
+      <li class="breadcrumb-item active">lab0 项目组成和执行流</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab0.5/lab0.5-2/lab0.5_2_2_file.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="lab0">
+<h1>lab0 项目组成和执行流<a class="headerlink" href="#lab0" title="永久链接至标题"></a></h1>
+<section id="id1">
+<h2>lab0的项目组成如下:<a class="headerlink" href="#id1" title="永久链接至标题"></a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span>── Makefile 
+├── kern
+│   ├── debug
+│   │   ├── assert.h
+│   │   ├── kdebug.c
+│   │   ├── kdebug.h
+│   │   ├── kmonitor.c
+│   │   ├── kmonitor.h
+│   │   ├── panic.c
+│   │   └── stab.h
+│   ├── driver
+│   │   ├── clock.c
+│   │   ├── clock.h
+│   │   ├── console.c
+│   │   ├── console.h
+│   │   ├── intr.c
+│   │   ├── intr.h
+│   │   ├── kbdreg.h
+│   │   ├── picirq.c
+│   │   └── picirq.h
+│   ├── init
+│   │   ├── entry.S
+│   │   └── init.c
+│   ├── libs
+│   │   ├── readline.c
+│   │   └── stdio.c
+│   ├── mm
+│   │   ├── memlayout.h
+│   │   ├── mmu.h
+│   │   ├── pmm.c
+│   │   └── pmm.h
+│   └── trap
+│       ├── trap.c
+│       ├── trap.h
+│       └── trapentry.S
+├── libs
+│   ├── defs.h
+│   ├── elf.h
+│   ├── error.h
+│   ├── printfmt.c
+│   ├── riscv.h
+│   ├── sbi.c
+│   ├── sbi.h
+│   ├── stdarg.h
+│   ├── stdio.h
+│   ├── string.c
+│   └── string.h
+└── tools
+    ├── function.mk
+    ├── kernel.ld
+</pre></div>
+</div>
+<section id="id2">
+<h3>内核启动<a class="headerlink" href="#id2" title="永久链接至标题"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">kern/init/entry.S</span></code>: OpenSBI启动之后将要跳转到的一段汇编代码。在这里进行内核栈的分配，然后转入C语言编写的内核初始化函数。</p>
+<p><code class="docutils literal notranslate"><span class="pre">kern/init/init.c</span></code>： C语言编写的内核入口点。主要包含<code class="docutils literal notranslate"><span class="pre">kern_init()</span></code>函数，从<code class="docutils literal notranslate"><span class="pre">kern/entry.S</span></code>跳转过来完成其他初始化工作。</p>
+</section>
+<section id="id3">
+<h3>设备驱动<a class="headerlink" href="#id3" title="永久链接至标题"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">kern/driver/console.c(h)</span></code>: 在QEMU上模拟的时候，唯一的“设备”是虚拟的控制台，通过OpenSBI接口使用。简单封装了OpenSBI的字符读写接口，向上提供给输入输出库。</p>
+<p><strong>库文件</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">libs/riscv.h</span></code>: 以宏的方式，定义了riscv指令集的寄存器和指令。如果在C语言里使用riscv指令，需要通过内联汇编和寄存器的编号。这个头文件把寄存器编号和内联汇编都封装成宏，使得我们可以用类似函数的方式在C语言里执行一句riscv指令。</p>
+<p><code class="docutils literal notranslate"><span class="pre">libs/sbi.c(h)</span></code>: 封装OpenSBI接口为函数。如果想在C语言里使用OpenSBI提供的接口，需要使用内联汇编。这个头文件把OpenSBI的内联汇编调用封装为函数。</p>
+<p><code class="docutils literal notranslate"><span class="pre">libs/defs.h</span></code>: 定义了一些常用的类型和宏。 例如bool 类型（C语言不自带，这里<code class="docutils literal notranslate"><span class="pre">typedef</span> <span class="pre">int</span> <span class="pre">bool</span></code>)。</p>
+<p><code class="docutils literal notranslate"><span class="pre">libs/string.c(h)</span></code>: 一些对字符数组进行操作的函数，如<code class="docutils literal notranslate"><span class="pre">memset(),memcpy()</span></code>等，类似C语言的<code class="docutils literal notranslate"><span class="pre">string.h</span></code>。</p>
+<p><code class="docutils literal notranslate"><span class="pre">kern/libs/stdio.c</span></code>, <code class="docutils literal notranslate"><span class="pre">libs/readline.c</span></code>, <code class="docutils literal notranslate"><span class="pre">libs/printfmt.c</span></code>: 实现了一套标准输入输出，功能类似于C语言的<code class="docutils literal notranslate"><span class="pre">printf()</span></code> 和<code class="docutils literal notranslate"><span class="pre">getchar()</span></code>。需要内核为输入输出函数提供两个桩函数（stub): 输出一个字符的函数，输入一个字符的函数。在这里，是<code class="docutils literal notranslate"><span class="pre">cons_getc()</span></code>和<code class="docutils literal notranslate"><span class="pre">cons_putc()</span></code>。</p>
+<p><code class="docutils literal notranslate"><span class="pre">kern/errors.h</span></code>: 定义了一些内核错误类型的宏。</p>
+</section>
+<section id="id4">
+<h3>编译、链接脚本<a class="headerlink" href="#id4" title="永久链接至标题"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">tools/kernel.ld</span></code>: ucore的链接脚本(link script), 告诉链接器如何将目标文件的section组合为可执行文件。</p>
+<p><code class="docutils literal notranslate"><span class="pre">tools/function.mk</span></code>:  定义Makefile中使用的一些函数</p>
+<p><code class="docutils literal notranslate"><span class="pre">Makefile</span></code>: GNU make编译脚本</p>
+</section>
+</section>
+<section id="id5">
+<h2>执行流<a class="headerlink" href="#id5" title="永久链接至标题"></a></h2>
+<p>最小可执行内核的执行流为:</p>
+<p>加电 -&gt; OpenSBI启动 -&gt; 跳转到 0x80200000 (<code class="docutils literal notranslate"><span class="pre">kern/init/entry.S</span></code>）-&gt;进入<code class="docutils literal notranslate"><span class="pre">kern_init()</span></code>函数（<code class="docutils literal notranslate"><span class="pre">kern/init/init.c</span></code>) -&gt;调用<code class="docutils literal notranslate"><span class="pre">cprintf()</span></code>输出一行信息-&gt;结束</p>
+<p><code class="docutils literal notranslate"><span class="pre">cprintf()</span></code>函数的执行流为:</p>
+<p>接受一个格式化字符串和若干个需要输出的变量作为参数 -&gt; 解析格式化的字符串，把需要输出的各种变量转化为一串字符 -&gt; 调用<code class="docutils literal notranslate"><span class="pre">console.c</span></code>提供的字符输出接口依次输出所有字符（实际上<code class="docutils literal notranslate"><span class="pre">console.c</span></code>又封装了<code class="docutils literal notranslate"><span class="pre">sbi.c</span></code>向上提供的OpenSBI接口)</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab0.5_2_1_exercise.html" class="btn btn-neutral float-left" title="练习" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab0.5-3/index.html" class="btn btn-neutral float-right" title="从机器启动到操作系统运行的过程" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

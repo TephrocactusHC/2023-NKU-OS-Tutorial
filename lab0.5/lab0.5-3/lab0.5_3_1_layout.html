@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenSBI, bin, elf &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="内存布局，链接脚本，入口点" href="lab0.5_3_2_linkerscript.html" />
+    <link rel="prev" title="从机器启动到操作系统运行的过程" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-1/lab0.5_1_goals.html">实验目的：</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-2/index.html">实验内容</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">从机器启动到操作系统运行的过程</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab0.5-4/lab0.5_4_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+          <li class="breadcrumb-item"><a href="index.html">从机器启动到操作系统运行的过程</a></li>
+      <li class="breadcrumb-item active">OpenSBI, bin, elf</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab0.5/lab0.5-3/lab0.5_3_1_layout.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="opensbi-bin-elf">
+<h1>OpenSBI, bin, elf<a class="headerlink" href="#opensbi-bin-elf" title="永久链接至标题"></a></h1>
+<p>最小可执行内核里, 我们主要完成两件事:</p>
+<ol class="simple">
+<li><p>内核的内存布局和入口点设置</p></li>
+<li><p>通过sbi封装好输入输出函数</p></li>
+</ol>
+<p>首先我们回顾计算机的组成:</p>
+<p>CPU, 存储设备（粗略地说，包括断电后遗失的内存，和断电后不遗失的硬盘），输入输出设备，总线。</p>
+<p>QEMU会帮助我们模拟一块riscv64的CPU，一块物理内存，还会借助你的电脑的键盘和显示屏来模拟命令行的输入和输出。虽然QEMU不会真正模拟一堆线缆，但是总线的通信功能也在QEMU内部实现了。</p>
+<p>还差什么呢？硬盘。</p>
+<p>我们需要硬盘上的程序和数据。比如崭新的windows电脑里C盘已经被占据的二三十GB空间，除去预装的应用软件，还有一部分是windows操作系统的内核。在插上电源开机之后，就需要运行操作系统的内核，然后由操作系统来管理计算机。</p>
+<p>问题在于，操作系统作为一个程序，必须加载到内存里才能执行。而“把操作系统加载到内存里”这件事情，不是操作系统自己能做到的，就好像你不能拽着头发把自己拽离地面。</p>
+<p>因此我们可以想象，在操作系统执行之前，必然有一个其他程序执行，他作为“先锋队”，完成“把操作系统加载到内存“这个工作，然后他功成身退，把CPU的控制权交给操作系统。</p>
+<p>这个“其他程序”，我们一般称之为bootloader. 很好理解：他负责boot(开机)，还负责load(加载OS到内存里)，所以叫bootloader.</p>
+<blockquote>
+<div><p><strong>简单说明</strong></p>
+<p>对于有<strong>复杂的读写时序要求</strong>的设备，比如硬盘、U盘等，CPU是无法直接读取的，需要借助驱动程序来告知CPU如何与设备进行通信从而读到数据。</p>
+<p>而这些驱动程序，就需要存储在一个不需要驱动程序，CPU就可以直接读取的地方，即一块像Memory一样，可以直接使用load/store命令可以访问，又不会担心数据会丢失的区域</p>
+<p>在现代计算机中，有一些设备具备这样的特性，如早期的ROM芯片，以及后期相对普及的NOR Flash芯片</p>
+<p>这些芯片与CPU连接之前，首先会进行初始化，在其中预置好对CPU的初始程序，即bootloader，然后再焊接至电路板上</p>
+<p>在CPU启动时，会首先运行这些代码，用这些代码实现对硬盘、内存和其他复杂设备的读取</p>
+</div></blockquote>
+<p>在QEMU模拟的riscv计算机里，我们使用QEMU自带的bootloader: OpenSBI固件，那么在 Qemu 开始执行任何指令之前，首先两个文件将被加载到 Qemu 的物理内存中：即作为 bootloader 的 OpenSBI.bin 被加载到物理内存以物理地址 0x80000000 开头的区域上，同时内核镜像 os.bin 被加载到以物理地址 0x80200000 开头的区域上</p>
+<blockquote>
+<div><p><strong>须知</strong></p>
+<p>在计算机中，<strong>固件(firmware)<strong>是一种特定的计算机软件，它为设备的特定硬件提供低级控制，也可以进一步加载其他软件。固件可以为设备更复杂的软件（如操作系统）提供标准化的操作环境。对于不太复杂的设备，固件可以直接充当设备的完整操作系统，执行所有控制、监视和数据操作功能。 在基于 x86 的计算机系统中, BIOS 或 UEFI 是固件；在基于 riscv 的计算机系统中，OpenSBI 是固件。OpenSBI运行在</strong>M态（M-mode）</strong>，因为固件需要直接访问硬件。</p>
+<p>RISCV有四种<strong>特权级（privilege level）</strong>。</p>
+<p>| Level | Encoding | 全称                       | 简称 |
+| —– | ——– | ————————– | —- |
+| 0     | 00       | User/Application           | U    |
+| 1     | 01       | Supervisor                 | S    |
+| 2     | 10       | Reserved(目前未使用，保留) |      |
+| 3     | 11       | Machine                    | M    |</p>
+<p>粗略的分类：</p>
+<p>U-mode是用户程序、应用程序的特权级，S-mode是操作系统内核的特权级，M-mode是固件的特权级。</p>
+</div></blockquote>
+<p>关于这个地址的选择，其实有软件工的工作，也有硬件人的工作。</p>
+<blockquote>
+<div><p><strong>实现细节</strong></p>
+<p>需要解释一下的是，0x80000000这个地址，是QEMU模拟的这款riscv处理器的<strong>复位地址</strong></p>
+<p>所谓<strong>复位地址</strong>，指的是CPU在上电的时候，或者按下复位键的时候，PC被赋的初始值</p>
+<p>这个值的选择会因为厂商的不同而发生变化，例如，80386的复位地址是0xFFF0（因为复位时是16位模式，写成32位时也作0xFFFFFFF0），MIPS的复位地址是0x00000000</p>
+<p>RISCV的设计标准相对灵活，它允许芯片的实现者自主选择复位地址，因此不同的芯片会有一些差异。QEMU是选择了一种实现方式进行模拟</p>
+<p>它假设在0x80000000的位置上有一块rom，并且其中存放了OpenSBI.bin的内容，然后在CPU完成上电后，将虚拟的PC指针置于这个地址上。</p>
+</div></blockquote>
+<p>我们可以想象这样的过程：操作系统的二进制可执行文件被OpenSBI加载到内存中，然后OpenSBI会把CPU的”当前指令指针”(pc, program counter)跳转到内存里的一个位置，开始执行内存中那个位置的指令。</p>
+<p>OpenSBI怎样知道把操作系统加载到内存的什么位置？总不能随便选个位置。也许你会觉得可以把操作系统的代码总是加载到固定的位置，比如总是加载到内存地址最高的地方。</p>
+<p>问题在于，之后OpenSBI还要把CPU的program counter跳转到一个位置,开始操作系统的执行。如果加载操作系统到内存里的时候随便加载，那么OpenSBI怎么知道把program counter跳转到哪里去呢？难道操作系统的二进制可执行文件需要提供“program counter跳转到哪里”这样的信息？</p>
+<p>实际上，我们有两种不同的可执行文件格式：<code class="docutils literal notranslate"><span class="pre">elf</span></code>(e是executable的意思， l是linkable的意思，f是format的意思)和<code class="docutils literal notranslate"><span class="pre">bin</span></code>(binary)，为了正确地和上一阶段的 OpenSBI 对接，我们需要保证内核的第一条指令位于物理地址 0x80200000 处，因为这里的代码是地址相关的，这个地址是由处理器，即Qemu指定的。为此，我们需要将内核镜像预先加载到 Qemu 物理内存以地址 0x80200000 开头的区域上。一旦 CPU 开始执行内核的第一条指令，证明计算机的控制权已经被移交给我们的内核。</p>
+<blockquote>
+<div><p><strong>代码的地址相关性</strong></p>
+<p>这里我们需要解释一个小问题，为什么内核一定要被加载到0x80200000的位置开始呢？加载到别的位置行不行呢？</p>
+<p>这要从高级语言被编译成为汇编和机器指令的过程说起了</p>
+<p>以一行C语言代码为例，<code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">sum</span> <span class="pre">=</span> <span class="pre">0;</span></code>，这句的意义是，在内存中分配一份可以容纳一个整数的空间，将其初始化为0。</p>
+<p>那么，什么时候才会确定sum 被分配的空间的具体地址呢？在编译和链接的时候就会分配，假设这个地址是<code class="docutils literal notranslate"><span class="pre">pa_sum</span></code></p>
+<p>接下来，当出现类似<code class="docutils literal notranslate"><span class="pre">sum</span> <span class="pre">+=5;</span></code>这样的语句时，相应的机器指令是，将<code class="docutils literal notranslate"><span class="pre">pa_sum</span></code>位置的值加载入寄存器，完成加法计算，再将这个值写回内存中对应的<code class="docutils literal notranslate"><span class="pre">pa_sum</span></code>处</p>
+<p>而此时生成的指令，会将<code class="docutils literal notranslate"><span class="pre">pa_sum</span></code>的值（假设为0x55aa55aa），直接写入到指令的编码中，如<code class="docutils literal notranslate"><span class="pre">load</span> <span class="pre">r1</span> <span class="pre">0x55aa55aa</span></code></p>
+<p>如此一来，则这一段代码就成了<strong>地址相关代码</strong>，即指令中的访存信息在编译完成后即已成为绝对地址，那么在运行之前，自然需要将所需要的代码加载到指定的位置</p>
+<p>与之相对的，自然会产生<strong>地址无关代码</strong>的技术需求，即在加载前才代码确定好被加载的位置，然后代码就可以在被加载处运行，这需要编译和加载时做一些处理工作，同学们可以思考一下这个技术需求的实现思路</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">elf</span></code>文件(<a class="reference external" href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">wikipedia: elf</a>)比较复杂，包含一个文件头(ELF header), 包含冗余的调试信息，指定程序每个section的内存布局，需要解析program header才能知道各段(section)的信息。如果我们已经有一个完整的操作系统来解析elf文件，那么elf文件可以直接执行。但是对于OpenSBI来说，elf格式还是太复杂了。</p>
+<p><code class="docutils literal notranslate"><span class="pre">bin</span></code>文件就比较简单了，简单地在文件头之后解释自己应该被加载到什么起始位置。</p>
+<p>我们举一个例子解释elf和bin文件的区别：初始化为零的一个大数组，在elf文件里是bss数据段的一部分，只需要记住这个数组的起点和终点就可以了，等到加载到内存里的时候分配那一段内存。但是在bin文件里，那个数组有多大，有多少个字节的0，bin文件就要对应有多少个零。所以如果一个程序里声明了一个大全局数组（默认初始化为0），那么可能编译出来的elf文件只有几KB, 而生成bin文件之后却有几MB, 这是很正常的。实际上，可以认为bin文件会把elf文件指定的每段的内存布局都映射到一块线性的数据里，这块线性的数据（或者说程序）加载到内存里就符合elf文件之前指定的布局。</p>
+<p>那么我们的任务就明确了：得到内存布局合适的elf文件，然后把它转化成bin文件（这一步通过objcopy实现），然后加载到QEMU里运行（QEMU自带的OpenSBI会干这个活）。下面我们来看如何设置elf文件的内存布局。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="index.html" class="btn btn-neutral float-left" title="从机器启动到操作系统运行的过程" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="lab0.5_3_2_linkerscript.html" class="btn btn-neutral float-right" title="内存布局，链接脚本，入口点" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

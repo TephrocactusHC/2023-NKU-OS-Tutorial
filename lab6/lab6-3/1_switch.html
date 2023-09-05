@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>深入理解进程切换 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="调度算法框架" href="2_schedule.html" />
+    <link rel="prev" title="进程状态" href="intro.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab6 进程调度</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab6-1/goals.html">实验目的</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab6-2/index.html">实验内容</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">调度框架和调度算法设计与实现</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab6-4/appendix.html">附录：执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>的大致输出</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab6 进程调度</a></li>
+          <li class="breadcrumb-item"><a href="index.html">调度框架和调度算法设计与实现</a></li>
+      <li class="breadcrumb-item active">深入理解进程切换</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab6/lab6-3/1_switch.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>深入理解进程切换<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>我们在第四章已经简单了解过了在内核启动过程中进程切换的过程，在这一节我们再来重新回顾一下这些内容，并且深入讨论下其中的几个细节。</p>
+<p>首先我们需要考虑的是，什么时候可以进行进程的切换。这里可以主要分为下面几种情况：</p>
+<ol class="simple">
+<li><p>进程主动放弃当前的CPU资源，比如显式调用<code class="docutils literal notranslate"><span class="pre">wait</span></code>或<code class="docutils literal notranslate"><span class="pre">sleep</span></code>通知操作系统当前进程需要等待</p></li>
+<li><p>进程想要获取的资源当前不可用，比如尝试获得未被释放的锁，或进行磁盘操作的时候</p></li>
+<li><p>进程由于外部中断被打断进入内核态，内核发现某些条件满足（比如当前进程时间片用尽），进行进程切换</p></li>
+</ol>
+<p>在我们实现的ucore中，内核进程是<strong>不可抢占</strong>的。这也就意味着当内核执行的时候，另一个内核进程不可以夺走它的的CPU资源。但这是不是就意味着一个内核进程执行的时候，它就会一直执行到结束呢？虽说内核进程不可以抢占，但是它可以主动放弃自己占有的CPU资源。如果不这样设计的话，内核当中很有可能出现各种死锁导致内核崩溃。</p>
+<p>另一方面，内核不能相信用户进程不会无限执行下去，所以需要提供手段在用户进程执行的时候打断他，比如时钟中断。在ucore的实现中，用户进程可以随时被打断进入内核，操作系统会检查当前进程是否需要调度，从而把运行的机会交给别的进程。</p>
+<p>由于内核进程是不可抢占的，所以我们在内核中有许多地方使用了显式的函数调用来进行调度，主要有以下几个地方：</p>
+<p>| 函数               | 原因                                                         |
+| —————— | ———————————————————— |
+| <code class="docutils literal notranslate"><span class="pre">proc.c/do_exit</span></code>   | 用户进程退出，放弃CPU资源                                    |
+| <code class="docutils literal notranslate"><span class="pre">proc.c/do_wait</span></code>   | 用户进程等待，放弃CPU资源                                    |
+| <code class="docutils literal notranslate"><span class="pre">proc.c/init_main</span></code> | <code class="docutils literal notranslate"><span class="pre">init</span></code>线程会等待所有的用户线程执行完毕，之后调用<code class="docutils literal notranslate"><span class="pre">kswapd</span></code>内核线程回收内存资源 |
+| <code class="docutils literal notranslate"><span class="pre">proc.c/cpu_idle</span></code>  | <code class="docutils literal notranslate"><span class="pre">idle</span></code>线程等待处于就绪态的线程，如果有就调用<code class="docutils literal notranslate"><span class="pre">schedule</span></code>       |
+| <code class="docutils literal notranslate"><span class="pre">sync.c/lock</span></code>      | 如果获取锁失败就进入等待                                     |
+| <code class="docutils literal notranslate"><span class="pre">trap.c/trap</span></code>      | 用户进程在被中断打断后，内核会检查是否需要调度，如果是则调用调度器进行调度 |</p>
+<p>当用户进程A发生中断或系统调用之后，首先其中断帧会被保存，CPU进入内核态，执行中断处理函数。在执行完毕中断处理函数后，操作系统检查当前进程是否需要调度，如果需要，就把当前的进程状态保存，switch到另一个进程B中。注意在执行上面的操作的时候，进程A处于内核态，类似的，调度后我们到达的是进程B的内核态。进程B从系统调用中返回，继续执行。如果进程B在中断或系统调用中被调度，控制权可能转交给进程A的内核态，这样进程A从内核态返回后就可以继续执行之前的代码了。</p>
+<p>下一小节，我们来看一看ucore的调度器框架以及一些简单的调度算法。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="intro.html" class="btn btn-neutral float-left" title="进程状态" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="2_schedule.html" class="btn btn-neutral float-right" title="调度算法框架" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

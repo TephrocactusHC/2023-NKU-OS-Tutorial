@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>开搞：搭建实验环境 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/translations.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+    <link rel="next" title="调试工具介绍" href="4_gdb.html" />
+    <link rel="prev" title="实验中可能使用的软件" href="softwares.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">lab0: 预备起</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#id2">lab0: 预备起</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="1_history.html">溯源: ucore的历史</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2_overview.html">概览: 指导书的结构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="0_Linux.html">Linux安装与熟悉</a></li>
+<li class="toctree-l3"><a class="reference internal" href="softwares.html">实验中可能使用的软件</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">开搞：搭建实验环境</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">编译器</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">模拟器</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="4_gdb.html">调试工具介绍</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">lab0: 预备起</a></li>
+      <li class="breadcrumb-item active">开搞：搭建实验环境</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/lab0/3_startdash.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>开搞：搭建实验环境<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>说了这么多，现在该动手了。Make your hands dirty!</p>
+<p>方便起见，可以先在终端里设置一个叫做<strong>RISCV</strong>的环境变量(在bash命令里可以通过**$RISCV**使用)，作为你安装所有和riscv有关的软件的路径。在<code class="docutils literal notranslate"><span class="pre">/etc/profile</span></code>里面写一行<code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">RISCV=/your/path/to/riscv</span></code>之类的东西就行。后面安装的各个项目最好也放在上面的的路径里面。</p>
+<p>最小的软件开发环境需要：能够编译程序，能够运行程序。开发操作系统这样的系统软件也不例外。</p>
+<section id="id2">
+<h2>编译器<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<p>问题在于：我们使用的计算机都是基于x86架构的。如何把程序编译到riscv64架构的汇编？这需要我们使用“目标语言为riscv64机器码的编译器”，在我们的电脑上进行<strong>交叉编译</strong>。</p>
+<p>放心，这里不需要你自己写编译器。我们使用现有的riscv-gcc编译器即可。从https://github.com/riscv/riscv-gcc clone下来，然后在x86架构上编译riscv-gcc编译器为可执行的x86程序，就可以运行它，来把你的程序源代码编译成riscv架构的可执行文件了。这有点像绕口令，但只要有一点编译原理的基础就可以理解。不过，这个riscv-gcc仓库很大，而且自己编译工具链总是一件麻烦的事。</p>
+<p>其实，没必要那么麻烦，我们大可以使用别人已经编译好的编译器的可执行文件，也就是所谓的<strong>预编译（prebuilt）<strong>工具链，下载下来，放在你喜欢的地方（比如之前定义的</strong>$RISCV</strong>），配好路径（把编译器的位置加到系统的<strong>PATH</strong>环境变量里），就能在终端使用了。我们推荐使用sifive公司提供的预编译工具链，进入https://d2pn104n81t9m2.cloudfront.net/products/tools/ ，找到 “Prebuilt RISC‑V GCC Toolchain and Emulator”，下载“GNU Embedded Toolchain ”中适合你的操作系统的版本即可。(注意，如果你是wsl, 需要下载适合ubuntu版本的编译器)
+将 RISCV/bin 添加到 bashrc当中，首先利用vim进入~/.bashrc文档，摁住ctrl+g，直接跳到最后一行，摁一下i键，进入插入模式，现在可以编辑文档了</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>vim ~/.bashrc
+</pre></div>
+</div>
+<p>我们在bashrc的最后添加路径</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">RISCV</span><span class="o">=</span>PATH_TO_INSTALL（你RISCV预编译链下载的路径）
+<span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$RISCV</span>/bin:<span class="nv">$PATH</span>
+</pre></div>
+</div>
+<p>路径添加好了，该关闭~/.bashrc了，摁一下esc键，退出插入模式； 输入冒号:wq，关闭bashrc；这时候还没有生效!需要source一下，source命令的含义的博客：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> ~/.bashrc
+</pre></div>
+</div>
+<p>配置好后，在终端输入<code class="docutils literal notranslate"><span class="pre">riscv64-unknown-elf-gcc</span> <span class="pre">-v</span></code>查看安装的gcc版本, 如果输出一大堆东西且最后一行有<code class="docutils literal notranslate"><span class="pre">gcc</span> <span class="pre">version</span> <span class="pre">某个数字.某个数字.某个数字</span></code>，说明gcc配置成功，否则需要检查一下哪里做错了，比如环境变量<strong>PATH</strong>配置是否正确。一般需要把一个形如<code class="docutils literal notranslate"><span class="pre">..../bin</span></code>的目录加到<strong>PATH</strong>里。</p>
+</section>
+<section id="id3">
+<h2>模拟器<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<p>如何运行riscv64的代码？我们当然可以给大家每个人发一块riscv64架构处理器的开发板，再给大家一人一根JTAG线，让大家把程序烧写到上面去跑，然后各凭本事debug（手动狗头），但还是使用**模拟器（emulator）**更方便一些。模拟器也就是在x86架构的计算机上，通过软件模拟一个riscv64架构的硬件平台，从而能够运行riscv64的目标代码。</p>
+<p>我们选择的是QEMU模拟器。它的优点在于，内置了一套OpenSBI固件的实现，可以简化我们的代码，也为了和rcore tutorial保持一致。</p>
+<p>下面我们从<a class="reference external" href="https://rcore-os.github.io/rCore_tutorial_doc/chapter2/part5.html">rCore tutorial</a>抄写了一段qemu安装的教程。</p>
+<section id="qemu">
+<h3>安装模拟器 Qemu<a class="headerlink" href="#qemu" title="永久链接至标题"></a></h3>
+<p>如果你在使用 Linux (Ubuntu) ，需要到 Qemu 官方网站下载源码并自行编译，因为 Ubuntu 自带的软件包管理器 <code class="docutils literal notranslate"><span class="pre">apt</span></code> 中的 Qemu 的版本过低无法使用。参考命令如下：</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ wget https://download.qemu.org/qemu-4.1.1.tar.xz
+$ tar xvJf qemu-4.1.1.tar.xz
+$ <span class="nb">cd</span> qemu-4.1.1
+$ ./configure --target-list<span class="o">=</span>riscv32-softmmu,riscv64-softmmu
+$ make -j
+$ <span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$PWD</span>/riscv32-softmmu:<span class="nv">$PWD</span>/riscv64-softmmu:<span class="nv">$PATH</span>
+</pre></div>
+</div>
+<p>可查看<a class="reference external" href="https://github.com/riscv/riscv-qemu/wiki">更详细的安装和使用命令</a>。</p>
+<p>如果你在使用 macOS，只需要 Homebrew 一个命令即可：</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ brew install qemu
+</pre></div>
+</div>
+<p>最后确认一下 Qemu 已经安装好，且版本在 4.1.0 以上：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ qemu-system-riscv64 --version
+QEMU emulator version <span class="m">4</span>.1.1
+Copyright <span class="o">(</span>c<span class="o">)</span> <span class="m">2003</span>-2019 Fabrice Bellard and the QEMU Project developers
+</pre></div>
+</div>
+</section>
+<section id="opensbi">
+<h3>使用 OpenSBI<a class="headerlink" href="#opensbi" title="永久链接至标题"></a></h3>
+<p>新版 Qemu 中内置了 <a class="reference external" href="https://github.com/riscv/opensbi">OpenSBI</a> 固件（firmware），它主要负责在操作系统运行前的硬件初始化和加载操作系统的功能。我们使用以下命令尝试运行一下：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ qemu-system-riscv64 <span class="se">\</span>
+  --machine virt <span class="se">\</span>
+  --nographic <span class="se">\</span>
+  --bios default
+
+OpenSBI v0.4 <span class="o">(</span>Jul  <span class="m">2</span> <span class="m">2019</span> <span class="m">11</span>:53:53<span class="o">)</span>
+   ____                    _____ ____ _____
+  / __ <span class="se">\ </span>                 / ____<span class="p">|</span>  _ <span class="se">\_</span>   _<span class="p">|</span>
+ <span class="p">|</span> <span class="p">|</span>  <span class="p">|</span> <span class="p">|</span>_ __   ___ _ __ <span class="p">|</span> <span class="o">(</span>___ <span class="p">|</span> <span class="p">|</span>_<span class="o">)</span> <span class="o">||</span> <span class="p">|</span>
+ <span class="p">|</span> <span class="p">|</span>  <span class="p">|</span> <span class="p">|</span> <span class="s1">&#39;_ \ / _ \ &#39;</span>_ <span class="se">\ \_</span>__ <span class="se">\|</span>  _ &lt; <span class="p">|</span> <span class="p">|</span>
+ <span class="p">|</span> <span class="p">|</span>__<span class="p">|</span> <span class="p">|</span> <span class="p">|</span>_<span class="o">)</span> <span class="p">|</span>  __/ <span class="p">|</span> <span class="p">|</span> <span class="p">|</span>____<span class="o">)</span> <span class="p">|</span> <span class="p">|</span>_<span class="o">)</span> <span class="o">||</span> <span class="p">|</span>_
+  <span class="se">\_</span>___/<span class="p">|</span> .__/ <span class="se">\_</span>__<span class="p">|</span>_<span class="p">|</span> <span class="p">|</span>_<span class="p">|</span>_____/<span class="p">|</span>____/_____<span class="p">|</span>
+        <span class="p">|</span> <span class="p">|</span>
+        <span class="p">|</span>_<span class="p">|</span>
+
+Platform Name          : QEMU Virt Machine
+Platform HART Features : RV64ACDFIMSU
+Platform Max HARTs     : <span class="m">8</span>
+Current Hart           : <span class="m">0</span>
+Firmware Base          : 0x80000000
+Firmware Size          : <span class="m">112</span> KB
+Runtime SBI Version    : <span class="m">0</span>.1
+
+PMP0: 0x0000000080000000-0x000000008001ffff <span class="o">(</span>A<span class="o">)</span>
+PMP1: 0x0000000000000000-0xffffffffffffffff <span class="o">(</span>A,R,W,X<span class="o">)</span>
+</pre></div>
+</div>
+<p>可以看到我们已经在 <code class="docutils literal notranslate"><span class="pre">qemu-system-riscv64</span></code> 模拟的 <code class="docutils literal notranslate"><span class="pre">virt</span> <span class="pre">machine</span></code> 硬件上将 <code class="docutils literal notranslate"><span class="pre">OpenSBI</span></code> 这个固件 跑起来了。Qemu 可以使用 <code class="docutils literal notranslate"><span class="pre">Ctrl+a</span></code> 再按下 <code class="docutils literal notranslate"><span class="pre">x</span></code> 退出（注意要松开<code class="docutils literal notranslate"><span class="pre">Ctrl</span></code>再单独按<code class="docutils literal notranslate"><span class="pre">x</span></code>）。</p>
+<p>如果无法正常使用 Qemu，可以尝试下面这个命令。</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ sudo sysctl vm.overcommit_memory<span class="o">=</span><span class="m">1</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>扩展</strong></p>
+<p>如果对 <code class="docutils literal notranslate"><span class="pre">OpenSBI</span></code> 的内部实现感兴趣，可以看看<a class="reference external" href="https://content.riscv.org/wp-content/uploads/2019/06/13.30-RISCV_OpenSBI_Deep_Dive_v5.pdf">RISCV OpenSBI Deep_Dive 介绍文档</a>。</p>
+</div></blockquote>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="softwares.html" class="btn btn-neutral float-left" title="实验中可能使用的软件" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="4_gdb.html" class="btn btn-neutral float-right" title="调试工具介绍" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

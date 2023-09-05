@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目组成 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="内核线程管理" href="../lab4-3/index.html" />
+    <link rel="prev" title="练习" href="lab4_2_1_exercises.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab4:进程管理</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">实验内容</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="index.html#id2">提前说明</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id3">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab4-3/index.html">内核线程管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab4-4/lab4_4_labs_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab4:进程管理</a></li>
+          <li class="breadcrumb-item"><a href="index.html">实验内容</a></li>
+      <li class="breadcrumb-item active">项目组成</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab4/lab4-2/lab4_2_2_files.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>项目组成<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── boot   
+├── kern  
+│ ├── debug  
+│ ├── driver  
+│ ├── fs   
+│ ├── init  
+│ │ ├── init.c   
+│ │ └── ...  
+│ ├── libs  
+│ │ ├── rb\_tree.c  
+│ │ ├── rb\_tree.h  
+│ │ └── ...   
+│ ├── mm   
+│ │ ├── kmalloc.c   
+│ │ ├── kmalloc.h   
+│ │ ├── memlayout.h   
+│ │ ├── pmm.c   
+│ │ ├── pmm.h   
+│ │ ├── swap.c   
+│ │ ├── vmm.c   
+│ │ └── ...   
+│ ├── process  
+│ │ ├── entry.S  
+│ │ ├── proc.c   
+│ │ ├── proc.h  
+│ │ └── switch.S  
+│ ├── schedule  
+│ │ ├── sched.c  
+│ │ └── sched.h  
+│ ├── sync  
+│ │ └── sync.h  
+│ └── trap  
+│ ├── trapentry.S  
+│ └── ...  
+├── libs  
+│ ├── hash.c   
+│ ├── stdlib.h  
+│ ├── unistd.h   
+│ └── ...  
+├── Makefile  
+└── tools  
+</pre></div>
+</div>
+<p>相对与实验三，实验四中主要改动如下：</p>
+<ul class="simple">
+<li><p>kern/process/ （新增进程管理相关文件）</p></li>
+<li><p>proc.[ch]：新增：实现进程、线程相关功能，包括：创建进程/线程，初始化进程/线程，处理进程/线程退出等功能</p></li>
+<li><p>entry.S：新增：内核线程入口函数kernel_thread_entry的实现</p></li>
+<li><p>switch.S：新增：上下文切换，利用堆栈保存、恢复进程上下文</p></li>
+<li><p>kern/init/</p></li>
+<li><p>init.c：修改：完成进程系统初始化，并在内核初始化后切入idle进程</p></li>
+<li><p>kern/mm/ （基本上与本次实验没有太直接的联系，了解kmalloc和kfree如何使用即可）</p></li>
+<li><p>kmalloc.[ch]：新增：定义和实现了新的kmalloc/kfree函数。具体实现是基于slab分配的简化算法 （只要求会调用这两个函数即可）</p></li>
+<li><p>memlayout.h：增加slab物理内存分配相关的定义与宏 （可不用理会）。</p></li>
+<li><p>pmm.[ch]：修改：在pmm.c中添加了调用kmalloc_init函数,取消了老的kmalloc/kfree的实现；在pmm.h中取消了老的kmalloc/kfree的定义</p></li>
+<li><p>swap.c：修改：取消了用于check的Line 185的执行</p></li>
+<li><p>vmm.c：修改：调用新的kmalloc/kfree</p></li>
+<li><p>kern/trap/</p></li>
+<li><p>trapentry.S：增加了汇编写的函数forkrets，用于do_fork调用的返回处理。</p></li>
+<li><p>kern/schedule/</p></li>
+<li><p>sched.[ch]：新增：实现FIFO策略的进程调度</p></li>
+<li><p>kern/libs</p></li>
+<li><p>rb_tree.[ch]：新增：实现红黑树，被slab分配的简化算法使用（可不用理会）</p></li>
+</ul>
+<p><strong>编译执行</strong></p>
+<p>编译并运行代码的命令如下：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span>
+<span class="n">make</span> <span class="n">qemu</span>
+</pre></div>
+</div>
+<p>则可以得到如下的显示内容（仅供参考，不是标准答案输出）</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(THU.CST) os is loading ...
+
+Special kernel symbols:
+  entry  0xc010002a (phys)
+  etext  0xc010a708 (phys)
+  edata  0xc0127ae0 (phys)
+  end    0xc012ad58 (phys)
+
+...
+
+++ setup timer interrupts
+this initproc, pid = 1, name = &quot;init&quot;
+To U: &quot;Hello world!!&quot;.
+To U: &quot;en.., Bye, Bye. :)&quot;
+kernel panic at kern/process/proc.c:354:
+    process exit!!.
+
+Welcome to the kernel debug monitor!!
+Type &#39;help&#39; for a list of commands.
+K&gt; qemu: terminating on signal 2
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab4_2_1_exercises.html" class="btn btn-neutral float-left" title="练习" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab4-3/index.html" class="btn btn-neutral float-right" title="内核线程管理" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

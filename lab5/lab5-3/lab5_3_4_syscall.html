@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>系统调用实现 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="实验报告要求" href="../lab5-4/lab5_4_lab_requirement.html" />
+    <link rel="prev" title="进程退出和等待进程" href="lab5_3_3_process_exit_wait.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab5:用户程序</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab5-1/lab5_1_goals.html">实验目的</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab5-2/index.html">实验内容</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">用户进程管理</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab5-4/lab5_4_lab_requirement.html">实验报告要求</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab7/index.html">lab7 同步互斥</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab5:用户程序</a></li>
+          <li class="breadcrumb-item"><a href="index.html">用户进程管理</a></li>
+      <li class="breadcrumb-item active">系统调用实现</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab5/lab5-3/lab5_3_4_syscall.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>系统调用实现<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>系统调用，是用户态(U mode)的程序获取内核态（S mode)服务的方法，所以需要在用户态和内核态都加入对应的支持和处理。我们也可以认为用户态只是提供一个调用的接口，真正的处理都在内核态进行。</p>
+<p>首先我们在头文件里定义一些系统调用的编号。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// libs/unistd.h</span>
+<span class="cp">#ifndef __LIBS_UNISTD_H__</span>
+<span class="cp">#define __LIBS_UNISTD_H__</span>
+
+<span class="cp">#define T_SYSCALL           0x80</span>
+
+<span class="cm">/* syscall number */</span><span class="w"></span>
+<span class="cp">#define SYS_exit            1</span>
+<span class="cp">#define SYS_fork            2</span>
+<span class="cp">#define SYS_wait            3</span>
+<span class="cp">#define SYS_exec            4</span>
+<span class="cp">#define SYS_clone           5</span>
+<span class="cp">#define SYS_yield           10</span>
+<span class="cp">#define SYS_sleep           11</span>
+<span class="cp">#define SYS_kill            12</span>
+<span class="cp">#define SYS_gettime         17</span>
+<span class="cp">#define SYS_getpid          18</span>
+<span class="cp">#define SYS_brk             19</span>
+<span class="cp">#define SYS_mmap            20</span>
+<span class="cp">#define SYS_munmap          21</span>
+<span class="cp">#define SYS_shmem           22</span>
+<span class="cp">#define SYS_putc            30</span>
+<span class="cp">#define SYS_pgdir           31</span>
+
+<span class="cm">/* SYS_fork flags */</span><span class="w"></span>
+<span class="cp">#define CLONE_VM            0x00000100  </span><span class="c1">// set if VM shared between processes</span>
+<span class="cp">#define CLONE_THREAD        0x00000200  </span><span class="c1">// thread group</span>
+
+<span class="cp">#endif </span><span class="cm">/* !__LIBS_UNISTD_H__ */</span><span class="cp"></span>
+</pre></div>
+</div>
+<p>我们注意在用户态进行系统调用的核心操作是，通过内联汇编进行<code class="docutils literal notranslate"><span class="pre">ecall</span></code>环境调用。这将产生一个trap, 进入S mode进行异常处理。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// user/libs/syscall.c</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdarg.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;syscall.h&gt;</span><span class="cp"></span>
+<span class="cp">#define MAX_ARGS            5</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">syscall</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">num</span><span class="p">,</span><span class="w"> </span><span class="p">...)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//va_list, va_start, va_arg都是C语言处理参数个数不定的函数的宏</span>
+<span class="w">    </span><span class="c1">//在stdarg.h里定义</span>
+<span class="w">    </span><span class="kt">va_list</span><span class="w"> </span><span class="n">ap</span><span class="p">;</span><span class="w"> </span><span class="c1">//ap: 参数列表(此时未初始化)</span>
+<span class="w">    </span><span class="n">va_start</span><span class="p">(</span><span class="n">ap</span><span class="p">,</span><span class="w"> </span><span class="n">num</span><span class="p">);</span><span class="w"> </span><span class="c1">//初始化参数列表, 从num开始</span>
+<span class="w">    </span><span class="c1">//First, va_start initializes the list of variable arguments as a va_list.</span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">MAX_ARGS</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_ARGS</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//把参数依次取出</span>
+<span class="w">	   	</span><span class="cm">/*Subsequent executions of va_arg yield the values of the additional arguments </span>
+<span class="cm">   		in the same order as passed to the function.*/</span><span class="w"></span>
+<span class="w">        </span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">va_arg</span><span class="p">(</span><span class="n">ap</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">va_end</span><span class="p">(</span><span class="n">ap</span><span class="p">);</span><span class="w"> </span><span class="c1">//Finally, va_end shall be executed before the function returns.</span>
+<span class="w">    </span><span class="k">asm</span><span class="w"> </span><span class="k">volatile</span><span class="w"> </span><span class="p">(</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ld a0, %1</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ld a1, %2</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ld a2, %3</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ld a3, %4</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ld a4, %5</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ld a5, %6</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ecall</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;sd a0, %0&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;=m&quot;</span><span class="w"> </span><span class="p">(</span><span class="n">ret</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">num</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="s">&quot;memory&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//num存到a0寄存器， a[0]存到a1寄存器</span>
+<span class="w">    </span><span class="c1">//ecall的返回值存到ret</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">sys_exit</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">error_code</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">syscall</span><span class="p">(</span><span class="n">SYS_exit</span><span class="p">,</span><span class="w"> </span><span class="n">error_code</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">sys_fork</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">syscall</span><span class="p">(</span><span class="n">SYS_fork</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">sys_wait</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">pid</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">store</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">syscall</span><span class="p">(</span><span class="n">SYS_wait</span><span class="p">,</span><span class="w"> </span><span class="n">pid</span><span class="p">,</span><span class="w"> </span><span class="n">store</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">sys_yield</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">syscall</span><span class="p">(</span><span class="n">SYS_yield</span><span class="p">);}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">sys_kill</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">pid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">syscall</span><span class="p">(</span><span class="n">SYS_kill</span><span class="p">,</span><span class="w"> </span><span class="n">pid</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">sys_getpid</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">syscall</span><span class="p">(</span><span class="n">SYS_getpid</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">sys_putc</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">syscall</span><span class="p">(</span><span class="n">SYS_putc</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>我们下面看看trap.c是如何转发这个系统调用的。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/trap/trap.c</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">exception_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//通过中断帧里 scause寄存器的数值，判断出当前是来自USER_ECALL的异常</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_USER_ECALL</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="c1">//cprintf(&quot;Environment call from U-mode\n&quot;);</span>
+<span class="w">            </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">epc</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"> </span>
+<span class="w">            </span><span class="c1">//sepc寄存器是产生异常的指令的位置，在异常处理结束后，会回到sepc的位置继续执行</span>
+<span class="w">            </span><span class="c1">//对于ecall, 我们希望sepc寄存器要指向产生异常的指令(ecall)的下一条指令</span>
+<span class="w">            </span><span class="c1">//否则就会回到ecall执行再执行一次ecall, 无限循环</span>
+<span class="w">            </span><span class="n">syscall</span><span class="p">();</span><span class="c1">// 进行系统调用处理</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/*other cases .... */</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="c1">// kern/syscall/syscall.c</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;proc.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;syscall.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;trap.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;pmm.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;assert.h&gt;</span><span class="cp"></span>
+<span class="c1">//这里把系统调用进一步转发给proc.c的do_exit(), do_fork()等函数</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_exit</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">error_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">do_exit</span><span class="p">(</span><span class="n">error_code</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_fork</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">tf</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">stack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">sp</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">do_fork</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">stack</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_wait</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">pid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">store</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">do_wait</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span><span class="w"> </span><span class="n">store</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_exec</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">binary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//用户态调用的exec(), 归根结底是do_execve()</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">do_execve</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="p">,</span><span class="w"> </span><span class="n">binary</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_yield</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">do_yield</span><span class="p">();</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_kill</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">pid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">do_kill</span><span class="p">(</span><span class="n">pid</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_getpid</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">pid</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">sys_putc</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="n">cputchar</span><span class="p">(</span><span class="n">c</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="c1">//这里定义了函数指针的数组syscalls, 把每个系统调用编号的下标上初始化为对应的函数指针</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">syscalls</span><span class="p">[])(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[])</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_exit</span><span class="p">]</span><span class="w">              </span><span class="n">sys_exit</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_fork</span><span class="p">]</span><span class="w">              </span><span class="n">sys_fork</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_wait</span><span class="p">]</span><span class="w">              </span><span class="n">sys_wait</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_exec</span><span class="p">]</span><span class="w">              </span><span class="n">sys_exec</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_yield</span><span class="p">]</span><span class="w">             </span><span class="n">sys_yield</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_kill</span><span class="p">]</span><span class="w">              </span><span class="n">sys_kill</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_getpid</span><span class="p">]</span><span class="w">            </span><span class="n">sys_getpid</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">[</span><span class="n">SYS_putc</span><span class="p">]</span><span class="w">              </span><span class="n">sys_putc</span><span class="p">,</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="cp">#define NUM_SYSCALLS        ((sizeof(syscalls)) / (sizeof(syscalls[0])))</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">syscall</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">tf</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">num</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a0</span><span class="p">;</span><span class="c1">//a0寄存器保存了系统调用编号</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">num</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">num</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">NUM_SYSCALLS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="c1">//防止syscalls[num]下标越界</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">syscalls</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a1</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a2</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">arg</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a3</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">arg</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a4</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">arg</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a5</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">syscalls</span><span class="p">[</span><span class="n">num</span><span class="p">](</span><span class="n">arg</span><span class="p">);</span><span class="w"> </span>
+<span class="w">            </span><span class="c1">//把寄存器里的参数取出来，转发给系统调用编号对应的函数进行处理</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//如果执行到这里，说明传入的系统调用编号还没有被实现，就崩掉了。</span>
+<span class="w">    </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;undefined syscall %d, pid = %d, name = %s.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="n">num</span><span class="p">,</span><span class="w"> </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">pid</span><span class="p">,</span><span class="w"> </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>这样我们就完成了系统调用的转发。接下来就是在<code class="docutils literal notranslate"><span class="pre">do_exit(),</span> <span class="pre">do_execve()</span></code>等函数中进行具体处理了。</p>
+<p>我们看看<code class="docutils literal notranslate"><span class="pre">do_execve()</span></code>函数</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/vmm.c</span>
+<span class="kt">bool</span><span class="w"> </span><span class="nf">user_mem_check</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//检查从addr开始长为len的一段内存能否被用户态程序访问</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">mm</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">USER_ACCESS</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">len</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">vma_struct</span><span class="w"> </span><span class="o">*</span><span class="n">vma</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">addr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">len</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">start</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">end</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">vma</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">find_vma</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="p">))</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_flags</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">((</span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">VM_WRITE</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">VM_READ</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">write</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_flags</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">VM_STACK</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">start</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_start</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//check stack start &amp; size</span>
+<span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">                </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_end</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">KERN_ACCESS</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">len</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="c1">// kern/process/proc.c</span>
+<span class="c1">// do_execve - call exit_mmap(mm)&amp;put_pgdir(mm) to reclaim memory space of current process</span>
+<span class="c1">//           - call load_icode to setup new memory space accroding binary prog.</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">do_execve</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">binary</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">mm</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">user_mem_check</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//检查name的内存空间能否被访问</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">len</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">PROC_NAME_LEN</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//进程名字的长度有上限 PROC_NAME_LEN，在proc.h定义</span>
+<span class="w">        </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PROC_NAME_LEN</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">local_name</span><span class="p">[</span><span class="n">PROC_NAME_LEN</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="n">memset</span><span class="p">(</span><span class="n">local_name</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">local_name</span><span class="p">));</span><span class="w"></span>
+<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="n">local_name</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">mm</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">cputs</span><span class="p">(</span><span class="s">&quot;mm != NULL&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">lcr3</span><span class="p">(</span><span class="n">boot_cr3</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">mm_count_dec</span><span class="p">(</span><span class="n">mm</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">exit_mmap</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="n">put_pgdir</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="n">mm_destroy</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span><span class="c1">//把进程当前占用的内存释放，之后重新分配内存</span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">mm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//把新的程序加载到当前进程里的工作都在load_icode()函数里完成</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_icode</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">goto</span><span class="w"> </span><span class="n">execve_exit</span><span class="p">;</span><span class="c1">//返回不为0，则加载失败</span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">set_proc_name</span><span class="p">(</span><span class="n">current</span><span class="p">,</span><span class="w"> </span><span class="n">local_name</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//如果set_proc_name的实现不变, 为什么不能直接set_proc_name(current, name)?</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+
+<span class="nl">execve_exit</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="n">do_exit</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;already exit: %e.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>那么我们如何实现<code class="docutils literal notranslate"><span class="pre">kernel_execve()</span></code>函数？</p>
+<p>能否直接调用<code class="docutils literal notranslate"><span class="pre">do_execve()</span></code>?</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/process/proc.c</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">kernel_execve</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">binary</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">ret</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">strlen</span><span class="p">(</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">do_execve</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="p">,</span><span class="w"> </span><span class="n">binary</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;ret = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>很不幸。这么做行不通。<code class="docutils literal notranslate"><span class="pre">do_execve()</span></code> <code class="docutils literal notranslate"><span class="pre">load_icode()</span></code>里面只是构建了用户程序运行的上下文，但是并没有完成切换。上下文切换实际上要借助中断处理的返回来完成。直接调用<code class="docutils literal notranslate"><span class="pre">do_execve()</span></code>是无法完成上下文切换的。如果是在用户态调用<code class="docutils literal notranslate"><span class="pre">exec()</span></code>, 系统调用的<code class="docutils literal notranslate"><span class="pre">ecall</span></code>产生的中断返回时， 就可以完成上下文切换。</p>
+<p>由于目前我们在S mode下，所以不能通过<code class="docutils literal notranslate"><span class="pre">ecall</span></code>来产生中断。我们这里采取一个取巧的办法，用<code class="docutils literal notranslate"><span class="pre">ebreak</span></code>产生断点中断进行处理，通过设置<code class="docutils literal notranslate"><span class="pre">a7</span></code>寄存器的值为10说明这不是一个普通的断点中断，而是要转发到<code class="docutils literal notranslate"><span class="pre">syscall()</span></code>, 这样用一个不是特别优雅的方式，实现了在内核态使用系统调用。</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/process/proc.c</span>
+<span class="c1">// kernel_execve - do SYS_exec syscall to exec a user program called by user_main kernel_thread</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">kernel_execve</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">binary</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">ret</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">strlen</span><span class="p">(</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">asm</span><span class="w"> </span><span class="k">volatile</span><span class="p">(</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;li a0, %1</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;lw a1, %2</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;lw a2, %3</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;lw a3, %4</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;lw a4, %5</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;li a7, 10</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;ebreak</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;sw a0, %0</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;=m&quot;</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;i&quot;</span><span class="p">(</span><span class="n">SYS_exec</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">name</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">len</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">binary</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;memory&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">//这里内联汇编的格式，和用户态调用ecall的格式类似，只是ecall换成了ebreak</span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;ret = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="c1">// kern/trap/trap.c</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">exception_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_BREAKPOINT</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Breakpoint</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a7</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">10</span><span class="p">){</span><span class="w"></span>
+<span class="w">                </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">epc</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"> </span><span class="c1">//注意返回时要执行ebreak的下一条指令</span>
+<span class="w">                </span><span class="n">syscall</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">  		</span><span class="cm">/* other cases ... */</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>注意我们需要让CPU进入U mode执行<code class="docutils literal notranslate"><span class="pre">do_execve()</span></code>加载的用户程序。进行系统调用<code class="docutils literal notranslate"><span class="pre">sys_exec</span></code>之后，我们在trap返回的时候调用了<code class="docutils literal notranslate"><span class="pre">sret</span></code>指令，这时只要<code class="docutils literal notranslate"><span class="pre">sstatus</span></code>寄存器的<code class="docutils literal notranslate"><span class="pre">SPP</span></code>二进制位为0，就会切换到U mode，但<code class="docutils literal notranslate"><span class="pre">SPP</span></code>存储的是“进入trap之前来自什么特权级”，也就是说我们这里ebreak之后<code class="docutils literal notranslate"><span class="pre">SPP</span></code>的数值为1，sret之后会回到S mode在内核态执行用户程序。所以<code class="docutils literal notranslate"><span class="pre">load_icode()</span></code>函数在构造新进程的时候，会把<code class="docutils literal notranslate"><span class="pre">SSTATUS_SPP</span></code>设置为0，使得<code class="docutils literal notranslate"><span class="pre">sret</span></code>的时候能回到U mode。</p>
+<p>至此，实验五中的主要工作描述完毕。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="lab5_3_3_process_exit_wait.html" class="btn btn-neutral float-left" title="进程退出和等待进程" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab5-4/lab5_4_lab_requirement.html" class="btn btn-neutral float-right" title="实验报告要求" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

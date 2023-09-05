@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管程 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="附录：执行make qemu的大致输出" href="../lab7-6/appendix.html" />
+    <link rel="prev" title="信号量" href="../lab7-4/2_semaphore.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab7 同步互斥</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab7-1/goals.html">实验目的</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-2/index.html">实验内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-3/1_concept.html">同步互斥的一些基本概念</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-4/2_semaphore.html">信号量</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">管程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-6/appendix.html">附录：执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>的大致输出</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab7 同步互斥</a></li>
+      <li class="breadcrumb-item active">管程</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab7/lab7-5/3_monitor.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>管程<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>我们已经有了基本的同步互斥机制实现，下面让我们用这些机制来实现一个管程，从而解决哲学家就餐问题。</p>
+<p>为什么要使用管程呢？引入管程相当于将底层的同步互斥机制封装了起来，对外提供已经经过同步的接口供进程使用，大大降低了并行进程开发的门槛。管程主要由四个部分组成：</p>
+<ul class="simple">
+<li><p>管程内部的共享变量</p></li>
+<li><p>管程内部的条件变量</p></li>
+<li><p>管程内部并发执行的进程</p></li>
+<li><p>对局部于管程内部的共享数据设置初始值的语句</p></li>
+</ul>
+<p>由此可见，管程把需要互斥访问的变量直接包装了起来，对共享变量的访问只能通过管程提供的相应接口，方便了多进程的编写。但是管程只有同步互斥是不够的，可能需要条件变量。条件变量类似于信号量，只不过在信号量中进程等待某一个资源可用，而条件变量中进程等待条件变量相应的资源为真。条件变量的结构体如下：</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">condvar</span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// 信号量</span>
+<span class="w">    </span><span class="n">semaphore_t</span><span class="w"> </span><span class="n">sem</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// 正在等待的线程数</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// 自己属于哪一个管程</span>
+<span class="w">    </span><span class="n">monitor_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">owner</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">condvar_t</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>我们主要需要实现两个函数：<code class="docutils literal notranslate"><span class="pre">wait</span></code>函数，等待某一个条件；<code class="docutils literal notranslate"><span class="pre">signal</span></code>函数，提醒某一个条件已经达成。具体实现比较简单，可以参考代码如下：</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// wait</span>
+<span class="n">cv</span><span class="p">.</span><span class="n">count</span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="k">if</span><span class="p">(</span><span class="n">monitor</span><span class="p">.</span><span class="n">next_count</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="n">sem_signal</span><span class="p">(</span><span class="n">monitor</span><span class="p">.</span><span class="n">next</span><span class="p">);</span><span class="w"></span>
+<span class="k">else</span><span class="w"></span>
+<span class="w">   </span><span class="n">sem_signal</span><span class="p">(</span><span class="n">monitor</span><span class="p">.</span><span class="n">mutex</span><span class="p">);</span><span class="w"></span>
+<span class="n">sem_wait</span><span class="p">(</span><span class="n">cv</span><span class="p">.</span><span class="n">sem</span><span class="p">);</span><span class="w"></span>
+<span class="n">cv</span><span class="p">.</span><span class="n">count</span><span class="w"> </span><span class="o">--</span><span class="w"> </span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// signal</span>
+<span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">cv</span><span class="p">.</span><span class="n">count</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">   </span><span class="n">monitor</span><span class="p">.</span><span class="n">next_count</span><span class="w"> </span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="w">   </span><span class="n">sem_signal</span><span class="p">(</span><span class="n">cv</span><span class="p">.</span><span class="n">sem</span><span class="p">);</span><span class="w"></span>
+<span class="w">   </span><span class="n">sem_wait</span><span class="p">(</span><span class="n">monitor</span><span class="p">.</span><span class="n">next</span><span class="p">);</span><span class="w"></span>
+<span class="w">   </span><span class="n">monitor</span><span class="p">.</span><span class="n">next_count</span><span class="w"> </span><span class="o">--</span><span class="w"> </span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>管程的内部实现如下所示：</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">monitor</span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// 保证管程互斥访问的信号量</span>
+<span class="w">    </span><span class="n">semaphore_t</span><span class="w"> </span><span class="n">mutex</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// 里面放着正在等待进入管程执行的进程</span>
+<span class="w">    </span><span class="n">semaphore_t</span><span class="w"> </span><span class="n">next</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// 正在等待进入管程的进程数</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">next_count</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// 条件变量</span>
+<span class="w">    </span><span class="n">condvar_t</span><span class="w"> </span><span class="o">*</span><span class="n">cv</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">monitor_t</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>条件变量<code class="docutils literal notranslate"><span class="pre">cv</span></code>被设置时，会使得当前在管程内的进程等待条件变量而睡眠，其他进程进入管程执行。当<code class="docutils literal notranslate"><span class="pre">cv</span></code>被唤醒的时候，之前等待这个条件变量的进程也会被唤醒，进入管程执行。由于管程内部只能由一个条件变量，所以通过设置<code class="docutils literal notranslate"><span class="pre">next</span></code>来维护下一个要运行的进程是哪一个。</p>
+<p>使用了管程，我们的哲学家就餐问题可以被实现为如下：</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">monitor</span><span class="w"> </span><span class="n">dp</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">enum</span><span class="w"> </span><span class="p">{</span><span class="n">THINKING</span><span class="p">,</span><span class="w"> </span><span class="n">HUNGRY</span><span class="p">,</span><span class="w"> </span><span class="n">EATING</span><span class="p">}</span><span class="w"> </span><span class="n">state</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="n">condition</span><span class="w"> </span><span class="n">self</span><span class="p">[</span><span class="mi">5</span><span class="p">];</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">pickup</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HUNGRY</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">test</span><span class="p">(</span><span class="n">i</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">EATING</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="n">self</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">wait_cv</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">putdown</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">THINKING</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">test</span><span class="p">((</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">5</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">test</span><span class="p">((</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">5</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">test</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">state</span><span class="p">[(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">EATING</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"></span>
+<span class="w">           </span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">HUNGRY</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"></span>
+<span class="w">           </span><span class="p">(</span><span class="n">state</span><span class="p">[(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">5</span><span class="p">]</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">EATING</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">              </span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EATING</span><span class="p">;</span><span class="w"></span>
+<span class="w">              </span><span class="n">self</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">signal_cv</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">initialization</span><span class="w"> </span><span class="nf">code</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="n">state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">THINKING</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>具体的实现可以在<code class="docutils literal notranslate"><span class="pre">sync/check_sync.c</span></code>中找到。需要注意的是，上述只是原理描述，与具体描述相比，还有一定的差距。需要大家在完成练习时仔细设计和实现。</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="../lab7-4/2_semaphore.html" class="btn btn-neutral float-left" title="信号量" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab7-6/appendix.html" class="btn btn-neutral float-right" title="附录：执行make qemu的大致输出" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

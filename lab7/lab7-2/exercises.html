@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>练习 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/translations.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+    <link rel="next" title="项目组成" href="structure.html" />
+    <link rel="prev" title="实验内容" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            2023级NKU操作系统实验指导书
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../README/README.html">欢迎来到ucore step-by-step的世界</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0/index.html">lab0: 预备起</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab0.5/index.html">lab0.5: 比麻雀更小的麻雀(最小可执行内核)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab1/index.html">lab1: 断, 都可以断</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab2/index.html">lab2:物理内存和页表</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab4/index.html">lab4:进程管理</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab5/index.html">lab5:用户程序</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab6/index.html">lab6 进程调度</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab7 同步互斥</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab7-1/goals.html">实验目的</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">实验内容</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="index.html#id2">本节内容</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-3/1_concept.html">同步互斥的一些基本概念</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-4/2_semaphore.html">信号量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-5/3_monitor.html">管程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../lab7-6/appendix.html">附录：执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>的大致输出</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../lab8/index.html">Lab8 文件系统</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/index.html">附录</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">2023级NKU操作系统实验指导书</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">lab7 同步互斥</a></li>
+          <li class="breadcrumb-item"><a href="index.html">实验内容</a></li>
+      <li class="breadcrumb-item active">练习</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/lab7/lab7-2/exercises.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>练习<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<p>对实验报告的要求：</p>
+<ul class="simple">
+<li><p>基于markdown格式来完成，以文本方式为主</p></li>
+<li><p>填写各个基本练习中要求完成的报告内容</p></li>
+<li><p>完成实验后，请分析ucore_lab中提供的参考答案，并请在实验报告中说明你的实现与参考答案的区别</p></li>
+<li><p>列出你认为本实验中重要的知识点，以及与对应的OS原理中的知识点，并简要说明你对二者的含义，关系，差异等方面的理解（也可能出现实验中的知识点没有对应的原理知识点）</p></li>
+<li><p>列出你认为OS原理中很重要，但在实验中没有对应上的知识点</p></li>
+</ul>
+<section id="id2">
+<h2>练习0：填写已有实验<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<p>本实验依赖实验1/2/3/4/5/6。请把你做的实验1/2/3/4/5/6的代码填入本实验中代码中有“LAB1”/“LAB2”/“LAB3”/“LAB4”/“LAB5”/“LAB6”的注释相应部分。并确保编译通过。注意：为了能够正确执行lab7的测试应用程序，可能需对已完成的实验1/2/3/4/5/6的代码进行进一步改进。</p>
+</section>
+<section id="id3">
+<h2>练习1: 理解内核级信号量的实现和基于内核级信号量的哲学家就餐问题（不需要编码）<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<p>完成练习0后，建议大家比较一下（可用meld等文件diff比较软件）个人完成的lab6和练习0完成后的刚修改的lab7之间的区别，分析了解lab7采用信号量的执行过程。执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">grade</span></code>，测试用例可以通过，但没有全部得分。</p>
+<ul class="simple">
+<li><p>请在实验报告中给出内核级信号量的设计描述，并说明其大致执行流程。</p></li>
+<li><p>证明/说明为什么我们给出的信号量实现的哲学家问题不会出现死锁。</p></li>
+<li><p>请在实验报告中给出给用户态进程/线程提供信号量机制的设计方案，并比较说明给内核级提供信号量机制的异同。</p></li>
+</ul>
+</section>
+<section id="id4">
+<h2>练习2: 完成内核级条件变量和基于内核级条件变量的哲学家就餐问题（需要编码）<a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<p>首先掌握管程机制，然后基于信号量实现完成条件变量实现，然后用管程机制实现哲学家就餐问题的解决方案（基于条件变量）。</p>
+<p>执行：<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">grade</span></code>
+。如果所显示的应用程序检测都输出ok，则基本正确。执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>的大致输出见附录。</p>
+<ul class="simple">
+<li><p>请在实验报告中给出内核级条件变量的设计描述，并说明其大致执行流程。</p></li>
+<li><p>请在实验报告中给出给用户态进程/线程提供条件变量机制的设计方案，并比较说明给内核级提供条件变量机制的异同。</p></li>
+<li><p>请在实验报告中回答：能否不用基于信号量机制来完成条件变量？如果不能，请给出理由，如果能，请给出设计说明和具体实现。</p></li>
+</ul>
+</section>
+<section id="challenge-1-ucore">
+<h2>扩展练习 Challenge 1 ：　在ucore中实现简化的死锁和重入探测机制<a class="headerlink" href="#challenge-1-ucore" title="永久链接至标题"></a></h2>
+<p>在ucore下实现一种探测机制，能够在多进程/线程运行同步互斥问题时，动态判断当前系统是否出现了死锁产生的必要条件，是否产生了多个进程进入临界区的情况。如果发现，让系统进入monitor状态，打印出你的探测信息。</p>
+</section>
+<section id="challenge-2-linuxrcu-ucorercu">
+<h2>扩展练习 Challenge 2 ：　参考Linux的RCU机制，在ucore中实现简化的RCU机制<a class="headerlink" href="#challenge-2-linuxrcu-ucorercu" title="永久链接至标题"></a></h2>
+<p>在ucore下实现下Linux的RCU同步互斥机制。可阅读相关Linux内核书籍或查询网上资料，可了解RCU的设计实现细节，然后简化实现在ucore中。
+要求有实验报告说明你的设计思路，并提供测试用例。下面是一些参考资料：</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://www.ibm.com/developerworks/cn/linux/l-rcu/">http://www.ibm.com/developerworks/cn/linux/l-rcu/</a></p></li>
+<li><p><a class="reference external" href="http://www.diybl.com/course/6_system/linux/Linuxjs/20081117/151814.html">http://www.diybl.com/course/6_system/linux/Linuxjs/20081117/151814.html</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="index.html" class="btn btn-neutral float-left" title="实验内容" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="structure.html" class="btn btn-neutral float-right" title="项目组成" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, NKU.</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
