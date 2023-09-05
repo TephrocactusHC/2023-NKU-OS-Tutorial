@@ -6,7 +6,7 @@
 
 由于 sphinx 采用 reStructuredText 语言，某些地方与 markdown 不兼容，部分内容无法正确渲染（目前主要问题在于 MARKDOWN 表格无法被正确渲染）。因此请以官方实验指导书为准!
 
-本仓库为助教小木的个人仓库，与官方手册内容一致。PDF手册由助教小木同学生成，[下载地址](https://github.com/TephrocactusMYC/2023-NKU-OS-Tutorial/releases/tag/OS-tutorial).
+本仓库为助教小木的个人仓库，与官方手册内容一致。PDF手册由助教小木同学生成，[下载地址](https://github.com/TephrocactusMYC/2023-NKU-OS-Tutorial/releases)。
 
 任何样式、渲染问题请直接在[ GITHUB 仓库](https://github.com/TephrocactusMYC/2023-NKU-OS-Tutorial)之中提交 ISSUE，我会酌情处理.
 
