@@ -12,9 +12,9 @@ latex_elements = {
 
 
 project = '2023级NKU操作系统实验指导书'
-copyright = '2023, NKU'
+copyright = '2023, NKU OS LAB'
 author = 'NKU助教团队'
-release = '1.0.0'
+release = '1.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
