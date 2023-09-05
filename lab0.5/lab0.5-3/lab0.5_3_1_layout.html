@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OpenSBI, bin, elf &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,9 +97,9 @@
            <div itemprop="articleBody">
              
   <section id="opensbi-bin-elf">
-<h1>OpenSBI, bin, elf<a class="headerlink" href="#opensbi-bin-elf" title="永久链接至标题"></a></h1>
+<h1>OpenSBI, bin, elf<a class="headerlink" href="#opensbi-bin-elf" title="Link to this heading"></a></h1>
 <p>最小可执行内核里, 我们主要完成两件事:</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>内核的内存布局和入口点设置</p></li>
 <li><p>通过sbi封装好输入输出函数</p></li>
 </ol>
@@ -123,12 +124,37 @@
 <div><p><strong>须知</strong></p>
 <p>在计算机中，<strong>固件(firmware)<strong>是一种特定的计算机软件，它为设备的特定硬件提供低级控制，也可以进一步加载其他软件。固件可以为设备更复杂的软件（如操作系统）提供标准化的操作环境。对于不太复杂的设备，固件可以直接充当设备的完整操作系统，执行所有控制、监视和数据操作功能。 在基于 x86 的计算机系统中, BIOS 或 UEFI 是固件；在基于 riscv 的计算机系统中，OpenSBI 是固件。OpenSBI运行在</strong>M态（M-mode）</strong>，因为固件需要直接访问硬件。</p>
 <p>RISCV有四种<strong>特权级（privilege level）</strong>。</p>
-<p>| Level | Encoding | 全称                       | 简称 |
-| —– | ——– | ————————– | —- |
-| 0     | 00       | User/Application           | U    |
-| 1     | 01       | Supervisor                 | S    |
-| 2     | 10       | Reserved(目前未使用，保留) |      |
-| 3     | 11       | Machine                    | M    |</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
+<th class="head"><p>Encoding</p></th>
+<th class="head"><p>全称</p></th>
+<th class="head"><p>简称</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>00</p></td>
+<td><p>User/Application</p></td>
+<td><p>U</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>01</p></td>
+<td><p>Supervisor</p></td>
+<td><p>S</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>10</p></td>
+<td><p>Reserved(目前未使用，保留)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>11</p></td>
+<td><p>Machine</p></td>
+<td><p>M</p></td>
+</tr>
+</tbody>
+</table>
 <p>粗略的分类：</p>
 <p>U-mode是用户程序、应用程序的特权级，S-mode是操作系统内核的特权级，M-mode是固件的特权级。</p>
 </div></blockquote>

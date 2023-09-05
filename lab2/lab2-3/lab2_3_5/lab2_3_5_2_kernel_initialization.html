@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>实现分页机制 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/translations.js"></script>
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/translations.js?v=beaddf03"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../../genindex.html" />
     <link rel="search" title="搜索" href="../../../search.html" />
@@ -97,14 +98,14 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>实现分页机制<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>实现分页机制<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>在本实验中，需要重点了解和实现基于页表的页机制和以页为单位的物理内存管理方法和分配算法等。由于ucore OS是基于80386 CPU实现的，所以CPU在进入保护模式后，就直接使能了段机制，并使得ucore OS需要在段机制的基础上建立页机制。下面比较详细地介绍了实现分页机制的过程。</p>
 <p>接下来我们就正式开始实验啦！
 首先我们要做的是内核初始化的修改，我们现在需要做的就是把原本只能直接在物理地址空间上运行的内核引入页表机制。
 具体来说，我们现在想将内核代码放在虚拟地址空间中以 <code class="docutils literal notranslate"><span class="pre">0xffffffffc0200000</span></code> 开头的一段高地址空间中。那怎么做呢？首先我们需要将下面的参数修改一下：</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">tools</span><span class="o">/</span><span class="n">kernel</span><span class="o">.</span><span class="n">ld</span>
-<span class="n">BASE_ADDRESS</span> <span class="o">=</span> <span class="mh">0xFFFFFFFFC0200000</span><span class="p">;</span>
-<span class="o">//</span><span class="n">之前这里是</span> <span class="mh">0x80200000</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>// tools/kernel.ld
+BASE_ADDRESS = 0xFFFFFFFFC0200000;
+//之前这里是 0x80200000
 </pre></div>
 </div>
 <p>我们修改了链接脚本中的起始地址。但是这样做的话，就能从物理地址空间转移到虚拟地址空间了吗？大家可以分析一下现在我们相当于是在 bootloader 的 OpenSBI 结束后的现状，这样就可以更好的理解接下来我们需要干什么：</p>
@@ -118,21 +119,21 @@
 <div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &lt;mmu.h&gt;</span>
 <span class="c1">#include &lt;memlayout.h&gt;</span>
 
-<span class="w">    </span><span class="na">.section</span><span class="w"> </span><span class="no">.text</span><span class="p">,</span><span class="s">&quot;ax&quot;</span><span class="p">,</span><span class="nv">%progbits</span><span class="w"></span>
-<span class="w">    </span><span class="na">.globl</span><span class="w"> </span><span class="no">kern_entry</span><span class="w"></span>
-<span class="nl">kern_entry:</span><span class="w"></span>
-<span class="w">    </span><span class="nf">la</span><span class="w"> </span><span class="no">sp</span><span class="p">,</span><span class="w"> </span><span class="no">bootstacktop</span><span class="w"></span>
+<span class="w">    </span><span class="na">.section</span><span class="w"> </span><span class="no">.text</span><span class="p">,</span><span class="s">&quot;ax&quot;</span><span class="p">,</span><span class="nv">%progbits</span>
+<span class="w">    </span><span class="na">.globl</span><span class="w"> </span><span class="no">kern_entry</span>
+<span class="nl">kern_entry:</span>
+<span class="w">    </span><span class="nf">la</span><span class="w"> </span><span class="no">sp</span><span class="p">,</span><span class="w"> </span><span class="no">bootstacktop</span>
 
-<span class="w">    </span><span class="nf">tail</span><span class="w"> </span><span class="no">kern_init</span><span class="w"></span>
+<span class="w">    </span><span class="nf">tail</span><span class="w"> </span><span class="no">kern_init</span>
 
-<span class="na">.section</span><span class="w"> </span><span class="no">.data</span><span class="w"></span>
+<span class="na">.section</span><span class="w"> </span><span class="no">.data</span>
 <span class="w">    </span><span class="c1"># .align 2^12</span>
-<span class="w">    </span><span class="na">.align</span><span class="w"> </span><span class="no">PGSHIFT</span><span class="w"></span>
-<span class="w">    </span><span class="na">.global</span><span class="w"> </span><span class="no">bootstack</span><span class="w"></span>
-<span class="nl">bootstack:</span><span class="w"></span>
-<span class="w">    </span><span class="na">.space</span><span class="w"> </span><span class="no">KSTACKSIZE</span><span class="w"></span>
-<span class="w">    </span><span class="na">.global</span><span class="w"> </span><span class="no">bootstacktop</span><span class="w"></span>
-<span class="nl">bootstacktop:</span><span class="w"></span>
+<span class="w">    </span><span class="na">.align</span><span class="w"> </span><span class="no">PGSHIFT</span>
+<span class="w">    </span><span class="na">.global</span><span class="w"> </span><span class="no">bootstack</span>
+<span class="nl">bootstack:</span>
+<span class="w">    </span><span class="na">.space</span><span class="w"> </span><span class="no">KSTACKSIZE</span>
+<span class="w">    </span><span class="na">.global</span><span class="w"> </span><span class="no">bootstacktop</span>
+<span class="nl">bootstacktop:</span>
 </pre></div>
 </div>
 <p>通过之前的实验大家应该都明白：符号 <code class="docutils literal notranslate"><span class="pre">bootstacktop</span></code> 就是我们需要的栈顶地址, 符号 <code class="docutils literal notranslate"><span class="pre">kern_init</span></code> 代表了我们要跳转到的地址。之前我们直接将 <code class="docutils literal notranslate"><span class="pre">bootstacktop</span></code> 的值给到 <code class="docutils literal notranslate"><span class="pre">SP</span></code> ， 再跳转到 <code class="docutils literal notranslate"><span class="pre">rust_main</span></code> 就行了。看上去上面的这个代码也能够实现我们想要的初始化效果呀？但问题在于，由于我们修改了链接脚本的起始地址，编译器和链接器认为内核开头地址为 <code class="docutils literal notranslate"><span class="pre">0xffffffffc0200000</span></code>，因此这两个符号会被翻译成比这个开头地址还要高的某个虚拟地址。而我们的 CPU 目前还处于 <code class="docutils literal notranslate"><span class="pre">Bare</span></code> 模式，会将地址都当成物理地址处理。这样，我们跳转到 <code class="docutils literal notranslate"><span class="pre">rust_main</span></code> 就会跳转到比<code class="docutils literal notranslate"><span class="pre">0xffffffffc0200000</span></code>还大的一个物理地址。但物理地址显然不可能有这么多位！这就会出现问题。</p>
@@ -141,65 +142,65 @@
 <p>比如内核的第一条指令，虚拟地址为 <code class="docutils literal notranslate"><span class="pre">0xffffffffc0200000</span></code> ，物理地址为 <code class="docutils literal notranslate"><span class="pre">0x80200000</span></code> ，因此，我们只要将虚拟地址减去 <code class="docutils literal notranslate"><span class="pre">0xffffffff40000000</span></code> ，就得到了物理地址。所以当我们需要做到去访问内核里面的一个物理地址 <code class="docutils literal notranslate"><span class="pre">va</span></code> 时，而已知虚拟地址为 <code class="docutils literal notranslate"><span class="pre">va</span></code> 时，则 <code class="docutils literal notranslate"><span class="pre">va</span></code> 处的代码或数据就放在物理地址为 <code class="docutils literal notranslate"><span class="pre">pa</span> <span class="pre">=</span> <span class="pre">va</span> <span class="pre">-</span> <span class="pre">0xffffffff40000000</span></code> 处的物理内存中，我们真正所要做的是要让 CPU 去访问 <code class="docutils literal notranslate"><span class="pre">pa</span></code>。因此，我们要通过恰当构造页表，来对于内核所属的虚拟地址，实现这种 <code class="docutils literal notranslate"><span class="pre">va</span></code> 到 <code class="docutils literal notranslate"><span class="pre">pa</span></code> 的映射。</p>
 <p>还记得之前的理论介绍的内容吗？那时我们提到，将一个三级页表项的标志位 <code class="docutils literal notranslate"><span class="pre">R,W,X</span></code> 不设为全 <code class="docutils literal notranslate"><span class="pre">0</span></code> ，可以将它变为一个叶子，从而获得大小为 <code class="docutils literal notranslate"><span class="pre">1GiB</span></code> 的一个大页。</p>
 <p>我们假定内核大小不超过 <code class="docutils literal notranslate"><span class="pre">1GiB</span></code>，通过一个大页将虚拟地址区间<code class="docutils literal notranslate"><span class="pre">[0xffffffffc0000000,0xffffffffffffffff]</span></code> 映射到物理地址区间 <code class="docutils literal notranslate"><span class="pre">[0x80000000,0xc0000000)</span></code>，而我们只需要分配一页内存用来存放三级页表，并将其最后一个页表项(也就是对应我们使用的虚拟地址区间的页表项)进行适当设置即可。对应的代码如下所示：</p>
-<div class="highlight-asm notranslate"><div class="highlight"><pre><span></span>#include &lt;mmu.h&gt;
-#include &lt;memlayout.h&gt;
+<div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &lt;mmu.h&gt;</span>
+<span class="c1">#include &lt;memlayout.h&gt;</span>
 
-    .section .text,&quot;ax&quot;,%progbits
-    .globl kern_entry
-kern_entry:
-    # t0 := 三级页表的虚拟地址
-    lui     t0, %hi(boot_page_table_sv39)
-    # t1 := 0xffffffff40000000 即虚实映射偏移量
-    li      t1, 0xffffffffc0000000 - 0x80000000
-    # t0 减去虚实映射偏移量 0xffffffff40000000，变为三级页表的物理地址
-    sub     t0, t0, t1
-    # t0 &gt;&gt;= 12，变为三级页表的物理页号
-    srli    t0, t0, 12
+<span class="w">    </span><span class="na">.section</span><span class="w"> </span><span class="no">.text</span><span class="p">,</span><span class="s">&quot;ax&quot;</span><span class="p">,</span><span class="nv">%progbits</span>
+<span class="w">    </span><span class="na">.globl</span><span class="w"> </span><span class="no">kern_entry</span>
+<span class="nl">kern_entry:</span>
+<span class="w">    </span><span class="c1"># t0 := 三级页表的虚拟地址</span>
+<span class="w">    </span><span class="nf">lui</span><span class="w">     </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="nv">%hi</span><span class="p">(</span><span class="no">boot_page_table_sv39</span><span class="p">)</span>
+<span class="w">    </span><span class="c1"># t1 := 0xffffffff40000000 即虚实映射偏移量</span>
+<span class="w">    </span><span class="nf">li</span><span class="w">      </span><span class="no">t1</span><span class="p">,</span><span class="w"> </span><span class="mi">0xffffffffc0000000</span><span class="w"> </span><span class="p">-</span><span class="w"> </span><span class="mi">0x80000000</span>
+<span class="w">    </span><span class="c1"># t0 减去虚实映射偏移量 0xffffffff40000000，变为三级页表的物理地址</span>
+<span class="w">    </span><span class="nf">sub</span><span class="w">     </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="no">t1</span>
+<span class="w">    </span><span class="c1"># t0 &gt;&gt;= 12，变为三级页表的物理页号</span>
+<span class="w">    </span><span class="nf">srli</span><span class="w">    </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span>
 
-    # t1 := 8 &lt;&lt; 60，设置 satp 的 MODE 字段为 Sv39
-    li      t1, 8 &lt;&lt; 60
-    # 将刚才计算出的预设三级页表物理页号附加到 satp 中
-    or      t0, t0, t1
-    # 将算出的 t0(即新的MODE|页表基址物理页号) 覆盖到 satp 中
-    csrw    satp, t0
-    # 使用 sfence.vma 指令刷新 TLB
-    sfence.vma
-    # 从此，我们给内核搭建出了一个完美的虚拟内存空间！
-    #nop # 可能映射的位置有些bug。。插入一个nop
-    
-    # 我们在虚拟内存空间中：随意将 sp 设置为虚拟地址！
-    lui sp, %hi(bootstacktop)
+<span class="w">    </span><span class="c1"># t1 := 8 &lt;&lt; 60，设置 satp 的 MODE 字段为 Sv39</span>
+<span class="w">    </span><span class="nf">li</span><span class="w">      </span><span class="no">t1</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="err">&lt;&lt;</span><span class="w"> </span><span class="mi">60</span>
+<span class="w">    </span><span class="c1"># 将刚才计算出的预设三级页表物理页号附加到 satp 中</span>
+<span class="w">    </span><span class="nf">or</span><span class="w">      </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="no">t1</span>
+<span class="w">    </span><span class="c1"># 将算出的 t0(即新的MODE|页表基址物理页号) 覆盖到 satp 中</span>
+<span class="w">    </span><span class="nf">csrw</span><span class="w">    </span><span class="no">satp</span><span class="p">,</span><span class="w"> </span><span class="no">t0</span>
+<span class="w">    </span><span class="c1"># 使用 sfence.vma 指令刷新 TLB</span>
+<span class="w">    </span><span class="nf">sfence.vma</span>
+<span class="w">    </span><span class="c1"># 从此，我们给内核搭建出了一个完美的虚拟内存空间！</span>
+<span class="w">    </span><span class="c1">#nop # 可能映射的位置有些bug。。插入一个nop</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1"># 我们在虚拟内存空间中：随意将 sp 设置为虚拟地址！</span>
+<span class="w">    </span><span class="nf">lui</span><span class="w"> </span><span class="no">sp</span><span class="p">,</span><span class="w"> </span><span class="nv">%hi</span><span class="p">(</span><span class="no">bootstacktop</span><span class="p">)</span>
 
-    # 我们在虚拟内存空间中：随意跳转到虚拟地址！
-    # 跳转到 kern_init
-    lui t0, %hi(kern_init)
-    addi t0, t0, %lo(kern_init)
-    jr t0
+<span class="w">    </span><span class="c1"># 我们在虚拟内存空间中：随意跳转到虚拟地址！</span>
+<span class="w">    </span><span class="c1"># 跳转到 kern_init</span>
+<span class="w">    </span><span class="nf">lui</span><span class="w"> </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="nv">%hi</span><span class="p">(</span><span class="no">kern_init</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">addi</span><span class="w"> </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="no">t0</span><span class="p">,</span><span class="w"> </span><span class="nv">%lo</span><span class="p">(</span><span class="no">kern_init</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">jr</span><span class="w"> </span><span class="no">t0</span>
 
-.section .data
-    # .align 2^12
-    .align PGSHIFT
-    .global bootstack
-bootstack:
-    .space KSTACKSIZE
-    .global bootstacktop
-bootstacktop:
+<span class="na">.section</span><span class="w"> </span><span class="no">.data</span>
+<span class="w">    </span><span class="c1"># .align 2^12</span>
+<span class="w">    </span><span class="na">.align</span><span class="w"> </span><span class="no">PGSHIFT</span>
+<span class="w">    </span><span class="na">.global</span><span class="w"> </span><span class="no">bootstack</span>
+<span class="nl">bootstack:</span>
+<span class="w">    </span><span class="na">.space</span><span class="w"> </span><span class="no">KSTACKSIZE</span>
+<span class="w">    </span><span class="na">.global</span><span class="w"> </span><span class="no">bootstacktop</span>
+<span class="nl">bootstacktop:</span>
 
-.section .data
-    # 由于我们要把这个页表放到一个页里面，因此必须 12 位对齐
-    .align PGSHIFT
-    .global boot_page_table_sv39
-# 分配 4KiB 内存给预设的三级页表
-boot_page_table_sv39:
-    # 0xffffffff_c0000000 map to 0x80000000 (1G)
-    # 前 511 个页表项均设置为 0 ，因此 V=0 ，意味着是空的(unmapped)
-    .zero 8 * 511
-    # 设置最后一个页表项，PPN=0x80000，标志位 VRWXAD 均为 1
-    .quad (0x80000 &lt;&lt; 10) | 0xcf # VRWXAD
+<span class="na">.section</span><span class="w"> </span><span class="no">.data</span>
+<span class="w">    </span><span class="c1"># 由于我们要把这个页表放到一个页里面，因此必须 12 位对齐</span>
+<span class="w">    </span><span class="na">.align</span><span class="w"> </span><span class="no">PGSHIFT</span>
+<span class="w">    </span><span class="na">.global</span><span class="w"> </span><span class="no">boot_page_table_sv39</span>
+<span class="c1"># 分配 4KiB 内存给预设的三级页表</span>
+<span class="nl">boot_page_table_sv39:</span>
+<span class="w">    </span><span class="c1"># 0xffffffff_c0000000 map to 0x80000000 (1G)</span>
+<span class="w">    </span><span class="c1"># 前 511 个页表项均设置为 0 ，因此 V=0 ，意味着是空的(unmapped)</span>
+<span class="w">    </span><span class="na">.zero</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="p">*</span><span class="w"> </span><span class="mi">511</span>
+<span class="w">    </span><span class="c1"># 设置最后一个页表项，PPN=0x80000，标志位 VRWXAD 均为 1</span>
+<span class="w">    </span><span class="na">.quad</span><span class="w"> </span><span class="p">(</span><span class="mi">0x80000</span><span class="w"> </span><span class="err">&lt;&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="err">|</span><span class="w"> </span><span class="mi">0xcf</span><span class="w"> </span><span class="c1"># VRWXAD</span>
 </pre></div>
 </div>
 <p>总结一下，要进入虚拟内存访问方式，需要如下步骤：</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>分配页表所在内存空间并初始化页表；</p></li>
 <li><p>设置好页基址寄存器（指向页表起始地址）；</p></li>
 <li><p>刷新 TLB。</p></li>

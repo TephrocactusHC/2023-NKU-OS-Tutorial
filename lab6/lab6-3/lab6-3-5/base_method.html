@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>基本思路 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/translations.js"></script>
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/translations.js?v=beaddf03"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../../genindex.html" />
     <link rel="search" title="搜索" href="../../../search.html" />
@@ -97,17 +98,18 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>基本思路<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>基本思路<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p><strong>【提示】请先看练习2中提到的论文, 理解后在看下面的内容。</strong></p>
 <p>考察 round-robin 调度器，在假设所有进程都充分使用了其拥有的 CPU 时间资源的情况下，所有进程得到的 CPU 时间应该是相等的。但是有时候我们希望调度器能够更智能地为每个进程分配合理的 CPU 资源。假设我们为不同的进程分配不同的优先级，则我们有可能希望每个进程得到的时间资源与他们的优先级成正比关系。Stride调度是基于这种想法的一个较为典型和简单的算法。除了简单易于实现以外，它还有如下的特点：</p>
 <ul class="simple">
 <li><p>可控性：如我们之前所希望的，可以证明 Stride Scheduling对进程的调度次数正比于其优先级。</p></li>
 <li><p>确定性：在不考虑计时器事件的情况下，整个调度机制都是可预知和重现的。该算法的基本思想可以考虑如下：</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>为每个runnable的进程设置一个当前状态stride，表示该进程当前的调度权。另外定义其对应的pass值，表示对应进程在调度后，stride 需要进行的累加值。</p></li>
 <li><p>每次需要调度时，从当前 runnable 态的进程中选择 stride最小的进程调度。</p></li>
 <li><p>对于获得调度的进程P，将对应的stride加上其对应的步长pass（只与进程的优先权有关系）。</p></li>
-<li><p>在一段固定的时间之后，回到 2.步骤，重新调度当前stride最小的进程。<br />可以证明，如果令 P.pass =BigStride / P.priority 其中 P.priority 表示进程的优先权（大于 1），而 BigStride 表示一个预先定义的大常数，则该调度方案为每个进程分配的时间将与其优先级成正比。证明过程我们在这里略去，有兴趣的同学可以在网上查找相关资料。将该调度器应用到
+<li><p>在一段固定的时间之后，回到 2.步骤，重新调度当前stride最小的进程。<br />
+可以证明，如果令 P.pass =BigStride / P.priority 其中 P.priority 表示进程的优先权（大于 1），而 BigStride 表示一个预先定义的大常数，则该调度方案为每个进程分配的时间将与其优先级成正比。证明过程我们在这里略去，有兴趣的同学可以在网上查找相关资料。将该调度器应用到
 ucore 的调度器框架中来，则需要将调度器接口实现如下：</p></li>
 </ol>
 </li>

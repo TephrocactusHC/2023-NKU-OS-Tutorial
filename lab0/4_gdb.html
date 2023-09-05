@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>调试工具介绍 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/translations.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=34088549"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/translations.js?v=beaddf03"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="搜索" href="../search.html" />
@@ -98,9 +99,9 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>调试工具介绍<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>调试工具介绍<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <section id="gdb">
-<h2>gdb使用<a class="headerlink" href="#gdb" title="永久链接至标题"></a></h2>
+<h2>gdb使用<a class="headerlink" href="#gdb" title="Link to this heading"></a></h2>
 <p>gdb 是功能强大的调试程序，可完成如下的调试任务：</p>
 <ul class="simple">
 <li><p>设置断点</p></li>
@@ -113,7 +114,7 @@
 <li><p>调试线程</p></li>
 </ul>
 <p>在可以使用 gdb 调试程序之前，必须使用 -g 或 –ggdb编译选项编译源文件。运行 gdb 调试程序时通常使用如下的命令：</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gdb</span> <span class="n">progname</span>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>gdb progname
 </pre></div>
 </div>
 <p>在 gdb 提示符处键入help，将列出命令的分类，主要的分类有：</p>
@@ -150,7 +151,8 @@
 <tr><td>kill</td><td>终止正在被调试的程序</td></tr>
 <tr><td>list</td><td>显示被调试程序的源代码</td></tr>
 <tr><td>quit</td><td>退出 gdb</td></tr>
-</table><p>用gdb查看源代码可以用list命令，但是这个不够灵活。可以使用”layout src”命令，或者按Ctrl-X再按A，就会出现一个窗口可以查看源代码。也可以用使用-tui参数，这样进入gdb里面后就能直接打开代码查看窗口。其他代码窗口相关命令：</p>
+</table>
+<p>用gdb查看源代码可以用list命令，但是这个不够灵活。可以使用”layout src”命令，或者按Ctrl-X再按A，就会出现一个窗口可以查看源代码。也可以用使用-tui参数，这样进入gdb里面后就能直接打开代码查看窗口。其他代码窗口相关命令：</p>
 <table>
 <tr><td>info win</td><td>显示窗口的大小</td></tr>
 <tr><td>layout next</td><td>切换到下一个布局模式</td></tr>
@@ -166,29 +168,30 @@
 <tr><td>update</td><td>更新源代码窗口和当前执行点</td></tr>
 <tr><td>winheight name +/- line</td><td>调整name窗口的高度</td></tr>
 <tr><td>tabset nchar</td><td>设置tab为nchar个字符</td></tr>
-</table></section>
+</table>
+</section>
 <section id="gdbqemuucore">
-<h2>结合gdb和qemu源码级调试ucore<a class="headerlink" href="#gdbqemuucore" title="永久链接至标题"></a></h2>
+<h2>结合gdb和qemu源码级调试ucore<a class="headerlink" href="#gdbqemuucore" title="Link to this heading"></a></h2>
 <section id="id2">
-<h3>编译可调试的目标文件<a class="headerlink" href="#id2" title="永久链接至标题"></a></h3>
+<h3>编译可调试的目标文件<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <p>为了使得编译出来的代码是能够被gdb这样的调试器调试，我们需要在使用gcc编译源文件的时候添加参数：”-g”。这样编译出来的目标文件中才会包含可以用于调试器进行调试的相关符号信息。</p>
 </section>
 <section id="id3">
-<h3>使用远程调试<a class="headerlink" href="#id3" title="永久链接至标题"></a></h3>
+<h3>使用远程调试<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <p>为了与qemu配合进行源代码级别的调试，需要先让qemu进入等待gdb调试器的接入并且还不能让qemu中的CPU执行，因此启动qemu的时候，我们需要使用参数-S –s这两个参数来做到这一点。-s 可以使 Qemu 监听本地 TCP 端口 1234 等待 GDB 客户端连接，而 -S 可以使 Qemu 在收到 GDB 的请求后再开始运行。因此，Qemu 暂时没有任何输出。</p>
-<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span>	<span class="nv">$qemu</span>-system-riscv64 <span class="se">\</span>
-		-machine virt <span class="se">\</span>
-		-nographic <span class="se">\</span>
-		-bios default <span class="se">\</span>
-		-device loader,file<span class="o">=</span><span class="k">$(</span>UCOREIMG<span class="k">)</span>,addr<span class="o">=</span>0x80200000<span class="se">\</span>
-		-s -S
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="w">	</span><span class="nv">$qemu</span>-system-riscv64<span class="w"> </span><span class="se">\</span>
+<span class="w">		</span>-machine<span class="w"> </span>virt<span class="w"> </span><span class="se">\</span>
+<span class="w">		</span>-nographic<span class="w"> </span><span class="se">\</span>
+<span class="w">		</span>-bios<span class="w"> </span>default<span class="w"> </span><span class="se">\</span>
+<span class="w">		</span>-device<span class="w"> </span>loader,file<span class="o">=</span><span class="k">$(</span>UCOREIMG<span class="k">)</span>,addr<span class="o">=</span>0x80200000<span class="se">\</span>
+<span class="w">		</span>-s<span class="w"> </span>-S
 </pre></div>
 </div>
 <p>在使用了前面提到的参数启动qemu之后，qemu中的CPU并不会马上开始执行，这时我们启动gdb，然后在gdb命令行界面下，使用下面的命令连接到qemu：</p>
-<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span>	riscv64-unknown-elf-gdb <span class="se">\</span>
-    -ex <span class="s1">&#39;file bin/kernel&#39;</span> <span class="se">\</span>
-    -ex <span class="s1">&#39;set arch riscv:rv64&#39;</span> <span class="se">\</span>
-    -ex <span class="s1">&#39;target remote localhost:1234&#39;</span>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="w">	</span>riscv64-unknown-elf-gdb<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s1">&#39;file bin/kernel&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s1">&#39;set arch riscv:rv64&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-ex<span class="w"> </span><span class="s1">&#39;target remote localhost:1234&#39;</span>
 </pre></div>
 </div>
 <p>riscv64-unknown-elf-gdb: 这是 GDB 调试器的可执行文件名。它用于启动 GDB 调试器。</p>

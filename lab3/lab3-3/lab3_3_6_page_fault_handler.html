@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>处理缺页异常（page fault异常） &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -97,7 +98,7 @@
            <div itemprop="articleBody">
              
   <section id="page-fault">
-<h1>处理缺页异常（page fault异常）<a class="headerlink" href="#page-fault" title="永久链接至标题"></a></h1>
+<h1>处理缺页异常（page fault异常）<a class="headerlink" href="#page-fault" title="Link to this heading"></a></h1>
 <p>什么是缺页异常？</p>
 <p>缺页异常是指CPU访问的虚拟地址时， MMU没有办法找到对应的物理地址映射关系，或者与该物理页的访问权不一致而发生的异常。</p>
 <p>CPU通过地址总线可以访问连接在地址总线上的所有外设，包括物理内存、IO设备等等，但从CPU发出的访问地址并非是这些外设在地址总线上的物理地址，而是一个虚拟地址，由MMU将虚拟地址转换成物理地址再从地址总线上发出，MMU上的这种虚拟地址和物理地址的转换关系是需要创建的，并且还需要设置这个物理页的访问权限。</p>
@@ -110,82 +111,82 @@
 <p>当我们引入了虚拟内存，就意味着虚拟内存的空间可以远远大于物理内存，也意味着程序可以访问”不对应物理内存页帧的虚拟内存地址”，这时CPU应当抛出<code class="docutils literal notranslate"><span class="pre">Page</span> <span class="pre">Fault</span></code>这个异常。</p>
 <p>回想一下，我们处理异常的时候，是在<code class="docutils literal notranslate"><span class="pre">kern/trap/trap.c</span></code>的<code class="docutils literal notranslate"><span class="pre">exception_handler()</span></code>函数里进行的。按照<code class="docutils literal notranslate"><span class="pre">scause</span></code>寄存器对异常的分类里，有<code class="docutils literal notranslate"><span class="pre">CAUSE_LOAD_PAGE_FAULT</span></code> 和<code class="docutils literal notranslate"><span class="pre">CAUSE_STORE_PAGE_FAULT</span></code>两个case。之前我们并没有真正对异常进行处理，只是简单输出一下就返回了，但现在我们要真正进行Page Fault的处理。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/trap/trap.c</span>
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">print_pgfault</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;page fault at 0x%08x: %c/%c</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">badvaddr</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="n">trap_in_kernel</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="sc">&#39;K&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="sc">&#39;U&#39;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CAUSE_STORE_PAGE_FAULT</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="sc">&#39;W&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="sc">&#39;R&#39;</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">print_pgfault</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;page fault at 0x%08x: %c/%c</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">badvaddr</span><span class="p">,</span>
+<span class="w">            </span><span class="n">trap_in_kernel</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="sc">&#39;K&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="sc">&#39;U&#39;</span><span class="p">,</span>
+<span class="w">            </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CAUSE_STORE_PAGE_FAULT</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="sc">&#39;W&#39;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="sc">&#39;R&#39;</span><span class="p">);</span>
+<span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">pgfault_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">check_mm_struct</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">print_pgfault</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">check_mm_struct</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">do_pgfault</span><span class="p">(</span><span class="n">check_mm_struct</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">badvaddr</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;unhandled page fault.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">pgfault_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">check_mm_struct</span><span class="p">;</span>
+<span class="w">    </span><span class="n">print_pgfault</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">check_mm_struct</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">do_pgfault</span><span class="p">(</span><span class="n">check_mm_struct</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">,</span><span class="w"> </span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">badvaddr</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;unhandled page fault.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">exception_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="cm">/* .... other cases */</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_FETCH_PAGE_FAULT</span><span class="p">:</span><span class="c1">// 取指令时发生的Page Fault先不处理</span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Instruction page fault</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_LOAD_PAGE_FAULT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Load page fault</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pgfault_handler</span><span class="p">(</span><span class="n">tf</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">                </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;handle pgfault failed. %e</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_STORE_PAGE_FAULT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Store/AMO page fault</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">exception_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="cm">/* .... other cases */</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_FETCH_PAGE_FAULT</span><span class="p">:</span><span class="c1">// 取指令时发生的Page Fault先不处理</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Instruction page fault</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_LOAD_PAGE_FAULT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Load page fault</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pgfault_handler</span><span class="p">(</span><span class="n">tf</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">                </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;handle pgfault failed. %e</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_STORE_PAGE_FAULT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Store/AMO page fault</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 <span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pgfault_handler</span><span class="p">(</span><span class="n">tf</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//do_pgfault()页面置换成功时返回0</span>
-<span class="w">                </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">                </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;handle pgfault failed. %e</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">default</span><span class="o">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">                </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;handle pgfault failed. %e</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">default</span><span class="o">:</span>
+<span class="w">            </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>这里的异常处理程序会把Page Fault分发给<code class="docutils literal notranslate"><span class="pre">kern/mm/vmm.c</span></code>的<code class="docutils literal notranslate"><span class="pre">do_pgfault()</span></code>函数并尝试进行页面置换。</p>
 <p>之前我们进行物理页帧管理时有个功能没有实现，那就是动态的内存分配。管理虚拟内存的数据结构（页表）需要有空间进行存储，而我们又没有给它预先分配内存（也无法预先分配，因为事先不确定我们的页表需要分配多少内存），于是我们就需要设置接口来负责分配释放内存，这里我们选择的是<code class="docutils literal notranslate"><span class="pre">malloc/free</span></code>的接口。同样，我们也要在<code class="docutils literal notranslate"><span class="pre">pmm.h</span></code>里编写对物理页面和虚拟地址，物理地址进行转换的一些函数。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/pmm.c</span>
 <span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="nf">kmalloc</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//分配至少n个连续的字节，这里实现得不精细，占用的只能是整数个页。</span>
-<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mo">0124</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mo">0124</span><span class="p">);</span>
 <span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">num_pages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PGSIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span><span class="w"> </span><span class="c1">//向上取整到整数个页</span>
 <span class="w">    </span><span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc_pages</span><span class="p">(</span><span class="n">num_pages</span><span class="p">);</span><span class="w"> </span>
 <span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">base</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"> </span><span class="c1">//如果分配失败就直接panic</span>
 <span class="w">    </span><span class="n">ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">page2kva</span><span class="p">(</span><span class="n">base</span><span class="p">);</span><span class="w"> </span><span class="c1">//分配的内存的起始位置（虚拟地址），</span>
 <span class="w">    </span><span class="c1">//page2kva, 就是page_to_kernel_virtual_address</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ptr</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ptr</span><span class="p">;</span>
+<span class="p">}</span>
 
 <span class="kt">void</span><span class="w"> </span><span class="nf">kfree</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//从某个位置开始释放n个字节</span>
-<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mo">0124</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">ptr</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mo">0124</span><span class="p">);</span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">ptr</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
 <span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">num_pages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PGSIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span><span class="w"> </span>
 <span class="w">    </span><span class="cm">/*计算num_pages和kmalloc里一样，</span>
 <span class="cm">    但是如果程序员写错了呢？调用kfree的时候传入的n和调用kmalloc传入的n不一样？</span>
 <span class="cm">    就像你平时在windows/linux写C语言一样，会出各种奇奇怪怪的bug。</span>
-<span class="cm">    */</span><span class="w"></span>
+<span class="cm">    */</span>
 <span class="w">    </span><span class="n">base</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">kva2page</span><span class="p">(</span><span class="n">ptr</span><span class="p">);</span><span class="c1">//kernel_virtual_address_to_page</span>
-<span class="w">    </span><span class="n">free_pages</span><span class="p">(</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="n">num_pages</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">free_pages</span><span class="p">(</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="n">num_pages</span><span class="p">);</span>
+<span class="p">}</span>
 <span class="c1">// kern/mm/pmm.h</span>
 <span class="cm">/*</span>
 <span class="cm">KADDR, PADDR进行的是物理地址和虚拟地址的互换</span>
 <span class="cm">由于我们在ucore里实现的页表映射很简单，所有物理地址和虚拟地址的偏移值相同，</span>
 <span class="cm">所以这两个宏本质上只是做了一步加法/减法，额外还做了一些合法性检查。</span>
-<span class="cm">*/</span><span class="w"></span>
+<span class="cm">*/</span>
 <span class="cm">/* *</span>
 <span class="cm"> * PADDR - takes a kernel virtual address (an address that points above</span>
 <span class="cm"> * KERNBASE),</span>
@@ -193,7 +194,7 @@
 <span class="cm"> * the</span>
 <span class="cm"> * corresponding physical address.  It panics if you pass it a non-kernel</span>
 <span class="cm"> * virtual address.</span>
-<span class="cm"> * */</span><span class="w"></span>
+<span class="cm"> * */</span>
 <span class="cp">#define PADDR(kva)                                                 \</span>
 <span class="cp">    ({                                                             \</span>
 <span class="cp">        uintptr_t __m_kva = (uintptr_t)(kva);                      \</span>
@@ -206,7 +207,7 @@
 <span class="cm">/* *</span>
 <span class="cm"> * KADDR - takes a physical address and returns the corresponding kernel virtual</span>
 <span class="cm"> * address. It panics if you pass an invalid physical address.</span>
-<span class="cm"> * */</span><span class="w"></span>
+<span class="cm"> * */</span>
 <span class="cp">#define KADDR(pa)                                                \</span>
 <span class="cp">    ({                                                           \</span>
 <span class="cp">        uintptr_t __m_pa = (pa);                                 \</span>
@@ -217,49 +218,49 @@
 <span class="cp">        (void *)(__m_pa + va_pa_offset);                         \</span>
 <span class="cp">    })</span>
 
-<span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pages</span><span class="p">;</span><span class="w"></span>
-<span class="k">extern</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">npage</span><span class="p">;</span><span class="w"></span>
-<span class="k">extern</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">nbase</span><span class="p">;</span><span class="w"></span>
-<span class="k">extern</span><span class="w"> </span><span class="n">uint_t</span><span class="w"> </span><span class="n">va_pa_offset</span><span class="p">;</span><span class="w"></span>
+<span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pages</span><span class="p">;</span>
+<span class="k">extern</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">npage</span><span class="p">;</span>
+<span class="k">extern</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">nbase</span><span class="p">;</span>
+<span class="k">extern</span><span class="w"> </span><span class="n">uint_t</span><span class="w"> </span><span class="n">va_pa_offset</span><span class="p">;</span>
 
 <span class="cm">/* </span>
 <span class="cm">我们曾经在内存里分配了一堆连续的Page结构体，来管理物理页面。可以把它们看作一个结构体数组。</span>
 <span class="cm">pages指针是这个数组的起始地址，减一下，加上一个基准值nbase, 就可以得到正确的物理页号。</span>
 <span class="cm">pages指针和nbase基准值我们都在其他地方做了正确的初始化</span>
-<span class="cm">*/</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">ppn_t</span><span class="w"> </span><span class="nf">page2ppn</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">pages</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">nbase</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="cm">*/</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">ppn_t</span><span class="w"> </span><span class="nf">page2ppn</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">pages</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">nbase</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
 <span class="cm">/*</span>
 <span class="cm">指向某个Page结构体的指针，对应一个物理页面，也对应一个起始的物理地址。</span>
 <span class="cm">左移若干位就可以从物理页号得到页面的起始物理地址。</span>
-<span class="cm">*/</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="nf">page2pa</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="cm">*/</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="nf">page2pa</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">page2ppn</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">PGSHIFT</span><span class="p">;</span><span class="w"> </span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span>
 <span class="cm">/*</span>
 <span class="cm">倒过来，从物理页面的地址得到所在的物理页面。实际上是得到管理这个物理页面的Page结构体。</span>
-<span class="cm">*/</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pa2page</span><span class="p">(</span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">pa</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PPN</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">npage</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;pa2page called with invalid pa&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="cm">*/</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pa2page</span><span class="p">(</span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">pa</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PPN</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">npage</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;pa2page called with invalid pa&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pages</span><span class="p">[</span><span class="n">PPN</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">nbase</span><span class="p">];</span><span class="c1">//把pages指针当作数组使用</span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">page2kva</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">KADDR</span><span class="p">(</span><span class="n">page2pa</span><span class="p">(</span><span class="n">page</span><span class="p">));</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">page2kva</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">KADDR</span><span class="p">(</span><span class="n">page2pa</span><span class="p">(</span><span class="n">page</span><span class="p">));</span><span class="w"> </span><span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">kva2page</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">kva</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">pa2page</span><span class="p">(</span><span class="n">PADDR</span><span class="p">(</span><span class="n">kva</span><span class="p">));</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">kva2page</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">kva</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">pa2page</span><span class="p">(</span><span class="n">PADDR</span><span class="p">(</span><span class="n">kva</span><span class="p">));</span><span class="w"> </span><span class="p">}</span>
 
 <span class="c1">//从页表项得到对应的页，这里用到了 PTE_ADDR(pte)宏，对页表项做操作，在mmu.h里	定义</span>
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pte2page</span><span class="p">(</span><span class="n">pte_t</span><span class="w"> </span><span class="n">pte</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">pte</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;pte2page called with invalid pte&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">pa2page</span><span class="p">(</span><span class="n">PTE_ADDR</span><span class="p">(</span><span class="n">pte</span><span class="p">));</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pte2page</span><span class="p">(</span><span class="n">pte_t</span><span class="w"> </span><span class="n">pte</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">pte</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;pte2page called with invalid pte&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">pa2page</span><span class="p">(</span><span class="n">PTE_ADDR</span><span class="p">(</span><span class="n">pte</span><span class="p">));</span>
+<span class="p">}</span>
 <span class="c1">//PDE(Page Directory Entry)指的是不在叶节点的页表项（指向低一级页表的页表项）</span>
 <span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pde2page</span><span class="p">(</span><span class="n">pde_t</span><span class="w"> </span><span class="n">pde</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//PDE_ADDR这个宏和PTE_ADDR是一样的</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">pa2page</span><span class="p">(</span><span class="n">PDE_ADDR</span><span class="p">(</span><span class="n">pde</span><span class="p">));</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">pa2page</span><span class="p">(</span><span class="n">PDE_ADDR</span><span class="p">(</span><span class="n">pde</span><span class="p">));</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>接下来需要我们处理的是多级页表。之前的初始页表占据一个页的物理内存，只有一个页表项是有用的，映射了一个大大页(Giga Page)。我们将在接下来的内容中实现页面置换机制。</p>

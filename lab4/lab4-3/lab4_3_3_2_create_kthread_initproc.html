@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>创建第 1 个内核线程 initproc &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -51,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab4:进程管理</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab4-1/lab4_1_goals.html">实验目的</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../lab4-2/index.html">实验内容</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="index.html">内核线程管理</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="index.html#id2">进程与线程</a></li>
@@ -97,7 +99,7 @@
            <div itemprop="articleBody">
              
   <section id="initproc">
-<h1>创建第 1 个内核线程 initproc<a class="headerlink" href="#initproc" title="永久链接至标题"></a></h1>
+<h1>创建第 1 个内核线程 initproc<a class="headerlink" href="#initproc" title="Link to this heading"></a></h1>
 <p>第0个内核线程主要工作是完成内核中各个子系统的初始化，然后就通过执行cpu_idle函数开始过退休生活了。所以uCore接下来还需创建其他进程来完成各种工作，但idleproc内核子线程自己不想做，于是就通过调用kernel_thread函数创建了一个内核线程init_main。在实验四中，这个子内核线程的工作就是输出一些字符串，然后就返回了（参看init_main函数）。但在后续的实验中，init_main的工作就是创建特定的其他内核线程或用户进程（实验五涉及）。下面我们来分析一下创建内核线程的函数kernel_thread：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>int kernel_thread(int (*fn)(void *), void *arg, uint32_t clone_flags) {
     // 对trameframe，也就是我们程序的一些上下文进行一些初始化
@@ -133,7 +135,7 @@
 </div>
 <p>从上可以看出，kernel_thread_entry函数主要为内核线程的主体fn函数做了一个准备开始和结束运行的“壳”，并把函数fn的参数arg（保存在edx寄存器中）压栈，然后调用fn函数，把函数返回值eax寄存器内容压栈，调用do_exit函数退出线程执行。</p>
 <p>do_fork是创建线程的主要函数。kernel_thread函数通过调用do_fork函数最终完成了内核线程的创建工作。下面我们来分析一下do_fork函数的实现（练习2）。do_fork函数主要做了以下7件事情：</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>分配并初始化进程控制块（<code class="docutils literal notranslate"><span class="pre">alloc_proc</span></code>函数）</p></li>
 <li><p>分配并初始化内核栈（<code class="docutils literal notranslate"><span class="pre">setup_stack</span></code>函数）</p></li>
 <li><p>根据<code class="docutils literal notranslate"><span class="pre">clone_flags</span></code>决定是复制还是共享内存管理系统（<code class="docutils literal notranslate"><span class="pre">copy_mm</span></code>函数）</p></li>
@@ -144,18 +146,18 @@
 </ol>
 <p>这里需要注意的是，如果上述前3步执行没有成功，则需要做对应的出错处理，把相关已经占有的内存释放掉。copy_mm函数目前只是把current-&gt;mm设置为NULL，这是由于目前在实验四中只能创建内核线程，proc-&gt;mm描述的是进程用户态空间的情况，所以目前mm还用不上。</p>
 <p>在这里我们需要尤其关注<code class="docutils literal notranslate"><span class="pre">copy_thread</span></code>函数：</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
-<span class="nf">copy_thread</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">esp</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="p">)(</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">kstack</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">KSTACKSIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="p">));</span><span class="w"></span>
-<span class="w">    </span><span class="o">*</span><span class="p">(</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">;</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">copy_thread</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">esp</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="p">)(</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">kstack</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">KSTACKSIZE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="p">));</span>
+<span class="w">    </span><span class="o">*</span><span class="p">(</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">;</span>
 
 <span class="w">    </span><span class="c1">// Set a0 to 0 so a child process knows it&#39;s just forked</span>
-<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">esp</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">esp</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">a0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">gpr</span><span class="p">.</span><span class="n">sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">esp</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">esp</span><span class="p">;</span>
 
-<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">context</span><span class="p">.</span><span class="n">ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">forkret</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">context</span><span class="p">.</span><span class="n">sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)(</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">context</span><span class="p">.</span><span class="n">ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">forkret</span><span class="p">;</span>
+<span class="w">    </span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">context</span><span class="p">.</span><span class="n">sp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">uintptr_t</span><span class="p">)(</span><span class="n">proc</span><span class="o">-&gt;</span><span class="n">tf</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>在这里我们首先在上面分配的内核栈上分配出一片空间来保存<code class="docutils literal notranslate"><span class="pre">trapframe</span></code>。然后，我们将<code class="docutils literal notranslate"><span class="pre">trapframe</span></code>中的<code class="docutils literal notranslate"><span class="pre">a0</span></code>寄存器（返回值）设置为0，说明这个进程是一个子进程。之后我们将上下文中的<code class="docutils literal notranslate"><span class="pre">ra</span></code>设置为了<code class="docutils literal notranslate"><span class="pre">forkret</span></code>函数的入口，并且把<code class="docutils literal notranslate"><span class="pre">trapframe</span></code>放在上下文的栈顶。在下一个小节，我们会看到这么做之后ucore是如何完成进程切换的。</p>

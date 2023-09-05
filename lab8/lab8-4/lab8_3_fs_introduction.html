@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>文件系统概述 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -106,9 +107,9 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1><strong>文件系统概述</strong><a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1><strong>文件系统概述</strong><a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <section id="id2">
-<h2>为啥需要文件/文件系统？<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>为啥需要文件/文件系统？<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>能够”持久存储数据的设备”, 可能包括: 机械硬盘(HDD, hard disk drive), 固态硬盘(solid-state storage device), 光盘（加上它的驱动器），软盘，U盘，甚至磁带或纸带等等。一般来说，每个设备上都会连出很多针脚（这些针脚很可能符合某个特定协议，如USB协议，SATA协议），它们都可以按照事先约定的接口/协议把数据从设备中读到内存里，或者把内存里的数据按照一定的格式储存到设备里。</p>
 <p>我们希望做到的第一件事情，就是把以上种种存储设备当作“同样的设备”进行使用。不管机械硬盘的扇区有多少个，或者一块固态硬盘里有多少存储单元，我们希望都能用同样的接口进行使用，提供“把硬盘的第a到第b个字节读出来”和“把内存里这些内容写到硬盘的从第a个字节开始的位置”的接口，在使用时只会感受到不同设备速度的不同。否则，我们还需要自己处理什么SATA协议，NVMe协议啥的。处理具体设备，具体协议并向上提供简单接口的软件，我们叫做<strong>设备驱动(device driver)，简称驱动</strong>。</p>
 <p>文件的概念在我们脑子里根深蒂固，但“文件”其实也是一种抽象。理论上，只要提供了上面提到的读写两个接口，我们就可以进行编程，而并不需要什么文件的概念。只要你自己在小本本上记住，你的某些数据存储在硬盘上从某个地址开始的多么长的位置，以及硬盘上哪些位置是没有被占用的。编程的时候，如果用到/修改硬盘上的数据， 就把小本本上记录的位置给硬编码到程序里。</p>
@@ -118,23 +119,23 @@
 <p>除了硬盘，我们还可以把其他设备（如标准输入，标准输出）看成是文件，由文件系统进行统一的管理。之前我们模拟过一个很简单的文件系统，用来存放内存置换出的页面（参见lab3 页面置换）。现在我们要来实现功能更强大也更复杂的文件系统。</p>
 </section>
 <section id="id3">
-<h2>虚拟文件系统<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<h2>虚拟文件系统<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>我们可以实现一个<strong>虚拟文件系统（virtual filesystem, VFS）</strong>, 作为操作系统和更具体的文件系统之间的接口。所谓“具体文件系统”，更接近具体设备和文件系统的内部实现，而“虚拟文件系统”更接近用户使用的接口。</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>电脑上本地的硬盘和远程的云盘(例如清华云盘，OneDrive）的具体文件管理方式很可能不同，但是操作系统可以让我们用相同的操作访问这两个地方的文件，可以认为用到了虚拟文件系统。</p></li>
 </ol>
-<p><img alt="../../_images/onedrive.jpg" src="../../_images/onedrive.jpg" /></p>
+<p><img alt="" src="../../_images/onedrive.jpg" /></p>
 <p>例如，远程的云盘OneDrive，在Windows资源管理器(可以看作是虚拟文件系统提供给用户的接口)里，看起来和本地磁盘上的文件夹一模一样，也可以做和本地的文件夹相同的操作，复制，粘贴，打开。虽然背后有着网络传输，可能速度会慢，但是接口一致。（理论上可以在OneDrive的远程存储服务器上使用linux操作系统）。</p>
-<ol>
+<ol class="arabic" start="2">
 <li><p>在Linux系统中，如<code class="docutils literal notranslate"><span class="pre">/floppy</span></code>是一块MS-DOS文件系统的软盘的挂载点，<code class="docutils literal notranslate"><span class="pre">/tmp/test</span></code>是Ext2文件系统的一个目录，我们执行<code class="docutils literal notranslate"><span class="pre">cp</span> <span class="pre">/floppy/TEST</span> <span class="pre">/tmp/test</span></code>, 进行目录的拷贝，相当于执行下面这段代码：</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">inf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">open</span><span class="p">(</span><span class="s">&quot;/floppy/TEST&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_RDONLY</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"> </span>
-<span class="n">outf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">open</span><span class="p">(</span><span class="s">&quot;/tmp/test&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_WRONLY</span><span class="o">|</span><span class="n">O_CREAT</span><span class="o">|</span><span class="n">O_TRUNC</span><span class="p">,</span><span class="w"> </span><span class="mo">0600</span><span class="p">);</span><span class="w"></span>
-<span class="k">do</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">	</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read</span><span class="p">(</span><span class="n">inf</span><span class="p">,</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="mi">4096</span><span class="p">);</span><span class="w"></span>
-<span class="w">	</span><span class="n">write</span><span class="p">(</span><span class="n">outf</span><span class="p">,</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">);</span><span class="w"></span>
-<span class="n">close</span><span class="p">(</span><span class="n">outf</span><span class="p">);</span><span class="w"></span>
-<span class="n">close</span><span class="p">(</span><span class="n">inf</span><span class="p">);</span><span class="w"></span>
+<span class="n">outf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">open</span><span class="p">(</span><span class="s">&quot;/tmp/test&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_WRONLY</span><span class="o">|</span><span class="n">O_CREAT</span><span class="o">|</span><span class="n">O_TRUNC</span><span class="p">,</span><span class="w"> </span><span class="mo">0600</span><span class="p">);</span>
+<span class="k">do</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read</span><span class="p">(</span><span class="n">inf</span><span class="p">,</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="mi">4096</span><span class="p">);</span>
+<span class="w">	</span><span class="n">write</span><span class="p">(</span><span class="n">outf</span><span class="p">,</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+<span class="n">close</span><span class="p">(</span><span class="n">outf</span><span class="p">);</span>
+<span class="n">close</span><span class="p">(</span><span class="n">inf</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>对于不同文件系统的目录，我们可以使用相同的open, read, write, close接口，好像它们在同一个文件系统里一样。这是虚拟文件系统的功能。</p>
@@ -154,7 +155,7 @@ However,the original directory’s content shows up again when the filesystem is
 </div></blockquote>
 </section>
 <section id="unix">
-<h2>UNIX文件系统<a class="headerlink" href="#unix" title="永久链接至标题"></a></h2>
+<h2>UNIX文件系统<a class="headerlink" href="#unix" title="Link to this heading"></a></h2>
 <p>ucore 的文件系统模型和传统的 UNIX文件系统类似。</p>
 <p>UNIX 文件中的内容可理解为是一段有序的字节 ，占用磁盘上可能连续或不连续的一些空间（实际占用的空间可能比你存储的数据要多）。每个文件都有一个方便应用程序识别的文件名（也可以称作路径path），另外有一个文件系统内部使用的编号（用户程序不知道这个底层编号）。你可以对着一个文件又读又写（写的太多的时候可能会自动给文件分配更多的硬盘存储空间），也可以创建或删除文件。</p>
 <p>**目录(directory)**是特殊的文件，一个目录里包含若干其他文件或目录。</p>
@@ -170,7 +171,7 @@ However,the original directory’s content shows up again when the filesystem is
 <p>上述抽象概念形成了 UNIX 文件系统的逻辑数据结构，并需要通过一个具体文件系统的架构，把上述信息映射并储存到磁盘介质上，从而在具体文件系统的磁盘布局（即数据在磁盘上的物理组织）上体现出上述抽象概念。比如文件元数据信息存储在磁盘块中的索引节点上。当文件被载入内存时，内核需要使用磁盘块中的索引点来构造内存中的索引节点。又比如dentry对象在磁盘上不存在，但是当一个目录包含的某一项（可能是子目录或文件）的信息被载入到内存时，内核会构建对应的dentry对象，如<code class="docutils literal notranslate"><span class="pre">/tmp/test</span></code>这个路径，在解析的过程中，内核为根目录<code class="docutils literal notranslate"><span class="pre">/</span></code>创建一个dentry对象，为根目录的成员<code class="docutils literal notranslate"><span class="pre">tmp</span></code>构建一个dentry对象，为<code class="docutils literal notranslate"><span class="pre">/tmp</span></code>目录的成员<code class="docutils literal notranslate"><span class="pre">test</span></code>也构建一个dentry对象。</p>
 </section>
 <section id="ucore">
-<h2>ucore 文件系统总体介绍<a class="headerlink" href="#ucore" title="永久链接至标题"></a></h2>
+<h2>ucore 文件系统总体介绍<a class="headerlink" href="#ucore" title="Link to this heading"></a></h2>
 <p>我们将在ucore里用虚拟文件系统管理三类设备：</p>
 <ul class="simple">
 <li><p>硬盘，我们管理硬盘的具体文件系统是Simple File System（地位和Ext2等文件系统相同）</p></li>
@@ -198,7 +199,7 @@ However,the original directory’s content shows up again when the filesystem is
 <p><img alt="fs1" src="../../_images/fs1.png" /></p>
 </section>
 <section id="id4">
-<h2><strong>ucore 文件系统总体结构</strong><a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<h2><strong>ucore 文件系统总体结构</strong><a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <p>从 ucore 操作系统不同的角度来看，ucore 中的文件系统架构包含四类主要的数据结构, 它们分别是：</p>
 <ul class="simple">
 <li><p>超级块（SuperBlock），它主要从文件系统的全局角度描述特定文件系统的全局信息。它的作用范围是整个 OS 空间。</p></li>
@@ -207,7 +208,7 @@ However,the original directory’s content shows up again when the filesystem is
 <li><p>文件（file），它主要从进程的角度描述了一个进程在访问文件时需要了解的文件标识，文件读写的位置，文件引用情况等信息。它的作用范围是某一具体进程。</p></li>
 </ul>
 <p>如果一个用户进程打开了一个文件，那么在 ucore 中涉及的相关数据结构和关系如下图所示：</p>
-<p><img alt="../../_images/fs2.png" src="../../_images/fs2.png" /></p>
+<p><img alt="" src="../../_images/fs2.png" /></p>
 </section>
 </section>
 

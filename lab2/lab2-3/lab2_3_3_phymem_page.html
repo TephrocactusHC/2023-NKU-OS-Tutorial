@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>以页为单位管理物理内存 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,15 +97,59 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>以页为单位管理物理内存<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>以页为单位管理物理内存<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <section id="id2">
-<h2>页表项<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>页表项<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>一个页表项是用来描述一个虚拟页号如何映射到物理页号的。如果一个虚拟页号通过某种手段找到了一个页表项，并通过读取上面的物理页号完成映射，那么我们称这个虚拟页号通过该页表项完成映射。而我们的”词典“（页表）存储在内存里，由若干个格式固定的”词条“也就是页表项（PTE, Page Table Entry）组成。显然我们需要给词典的每个词条约定一个固定的格式（包括每个词条的大小，含义），这样查起来才方便。</p>
 <p>那么在sv39的一个页表项占据8字节（64位），那么页表项结构是这样的：</p>
-<p>| 63-54      | 53-28  | 27-19  | 18-10  | 9-8  | 7    | 6    | 5    | 4    | 3    | 2    | 1    | 0    |
-| ———- | —— | —— | —— | —- | —- | —- | —- | —- | —- | —- | —- | —- |
-| <em>Reserved</em> | PPN[2] | PPN[1] | PPN[0] | RSW  | D    | A    | G    | U    | X    | W    | R    | V    |
-| 10         | 26     | 9      | 9      | 2    | 1    | 1    | 1    | 1    | 1    | 1    | 1    | 1    |</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>63-54</p></th>
+<th class="head"><p>53-28</p></th>
+<th class="head"><p>27-19</p></th>
+<th class="head"><p>18-10</p></th>
+<th class="head"><p>9-8</p></th>
+<th class="head"><p>7</p></th>
+<th class="head"><p>6</p></th>
+<th class="head"><p>5</p></th>
+<th class="head"><p>4</p></th>
+<th class="head"><p>3</p></th>
+<th class="head"><p>2</p></th>
+<th class="head"><p>1</p></th>
+<th class="head"><p>0</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><em>Reserved</em></p></td>
+<td><p>PPN[2]</p></td>
+<td><p>PPN[1]</p></td>
+<td><p>PPN[0]</p></td>
+<td><p>RSW</p></td>
+<td><p>D</p></td>
+<td><p>A</p></td>
+<td><p>G</p></td>
+<td><p>U</p></td>
+<td><p>X</p></td>
+<td><p>W</p></td>
+<td><p>R</p></td>
+<td><p>V</p></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><p>26</p></td>
+<td><p>9</p></td>
+<td><p>9</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+</tbody>
+</table>
 <p>我们可以看到 sv39 里面的一个页表项大小为 64 位 8 字节。其中第  53-10 位共44位为一个物理页号，表示这个虚拟页号映射到的物理页号。后面的第 9-0 位共10位则描述映射的状态信息。</p>
 <p>介绍一下映射状态信息各位的含义：</p>
 <ul class="simple">
@@ -118,22 +163,63 @@
 </ul>
 <p>以 W 这一位为例，如果 W=0 表示不可写，那么如果一条 store 的指令，它通过这个页表项完成了虚拟页号到物理页号的映射，找到了物理地址。但是仍然会报出异常，是因为这个页表项规定如果物理地址是通过它映射得到的，那么不准写入！ R,X也是同样的道理。</p>
 <p>根据 R,W,X 取值的不同，我们可以分成下面几种类型：</p>
-<p>| X    | W    | R    | Meaning                         |
-| —- | —- | —- | ——————————- |
-| 0    | 0    | 0    | 指向下一级页表的指针            |
-| 0    | 0    | 1    | 这一页只读                      |
-| 0    | 1    | 0    | <em>保留(reserved for future use)</em> |
-| 0    | 1    | 1    | 这一页可读可写（不可执行）      |
-| 1    | 0    | 0    | 这一页可读可执行（不可写）      |
-| 1    | 0    | 1    | 这一页可读可执行                |
-| 1    | 1    | 0    | <em>保留(reserved for future use)</em> |
-| 1    | 1    | 1    | 这一页可读可写可执行            |</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>X</p></th>
+<th class="head"><p>W</p></th>
+<th class="head"><p>R</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>指向下一级页表的指针</p></td>
+</tr>
+<tr class="row-odd"><td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>这一页只读</p></td>
+</tr>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p><em>保留(reserved for future use)</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>这一页可读可写（不可执行）</p></td>
+</tr>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>这一页可读可执行（不可写）</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>这一页可读可执行</p></td>
+</tr>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p><em>保留(reserved for future use)</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>这一页可读可写可执行</p></td>
+</tr>
+</tbody>
+</table>
 <ul class="simple">
 <li><p>V 表示这个页表项是否合法。如果为 0 表示不合法，此时页表项其他位的值都会被忽略。</p></li>
 </ul>
 </section>
 <section id="id3">
-<h2>多级页表<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<h2>多级页表<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>在实际使用中显然如果只有一级页表，那么我们构建出来的虚拟地址空间毕竟还是过于有限，因此我们需要引入多级页表以实现更大规模的虚拟地址空间。</p>
 <p>但相比于可用的物理内存空间，我们的虚拟地址空间太大，不可能为每个虚拟内存页都分配一个页表项。在Sv39中，因为一个页表项占据8字节（64位），而虚拟地址有39位，后12位是页内偏移，那么还剩下27位可以编码不同的虚拟页号。</p>
 <p>如果开个大数组Pagetable[], 给个2^27 虚拟页号都分配8字节的页表项，其中Pagetable[vpn]代表虚拟页号为vpn的虚拟页的页表项，那就是整整1 GiB的内存。但这里面其实很多虚拟地址我们没有用到，会有大片大片的页表项的 标志位为0（不合法），显然我们不应该为那么多非法页表项浪费宝贵的内存空间。</p>
@@ -146,12 +232,26 @@
 <p>三级和二级页表项不一定要指向下一级页表。我们知道每个一级页表项控制一个虚拟页号，即控制 4KiB 虚拟内存；每个二级页表项则控制 9 位虚拟页号，总计控制 4KiB×2^9 =2MiB 虚拟内存；每个三级页表项控制 18 位虚拟页号，总计控制 2MiB×2^9 =1GiB 虚拟内存。我们可以将二级页表项的 R,W,X 设置为不是全 0 的许可要求，那么它将与一级页表项类似，只不过可以映射一个 2MiB 的大页 (Mega Page) 。同理，也可以将三级页表项看作一个叶子，来映射一个 1GiB 的大大页(Giga Page)。</p>
 </section>
 <section id="id4">
-<h2>页表基址<a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<h2>页表基址<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <p>在翻译的过程中，我们首先需要知道树状页表的根节点的物理地址。这一般保存在一个特殊寄存器里。对于RISCV架构，是一个叫做<code class="docutils literal notranslate"><span class="pre">satp</span></code>（Supervisor Address Translation and Protection  Register）的CSR。实际上，<code class="docutils literal notranslate"><span class="pre">satp</span></code>里面存的不是最高级页表的起始物理地址，而是它所在的物理页号。除了物理页号，<code class="docutils literal notranslate"><span class="pre">satp</span></code>还包含其他信息。</p>
-<p>| 63-60      | 59-44      | 43-0      |
-| ———- | ———- | ——— |
-| MODE(WARL) | ASID(WARL) | PPN(WARL) |
-| 4          | 16         | 44        |</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>63-60</p></th>
+<th class="head"><p>59-44</p></th>
+<th class="head"><p>43-0</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MODE(WARL)</p></td>
+<td><p>ASID(WARL)</p></td>
+<td><p>PPN(WARL)</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>16</p></td>
+<td><p>44</p></td>
+</tr>
+</tbody>
+</table>
 <p>MODE表示当前页表的模式：</p>
 <ul class="simple">
 <li><p>0000表示不使用页表，直接使用物理地址，在简单的嵌入式系统里用着很方便。</p></li>

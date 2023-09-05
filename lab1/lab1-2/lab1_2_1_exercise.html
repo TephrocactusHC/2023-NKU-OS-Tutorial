@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>练习 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>练习<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>练习<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>对实验报告的要求：</p>
 <ul class="simple">
 <li><p>基于markdown格式来完成，以文本方式为主</p></li>
@@ -106,24 +107,24 @@
 <li><p>列出你认为OS原理中很重要，但在实验中没有对应上的知识点</p></li>
 </ul>
 <section id="id2">
-<h2>练习1：理解内核启动中的程序入口操作<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>练习1：理解内核启动中的程序入口操作<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>阅读 kern/init/entry.S内容代码，结合操作系统内核启动流程，说明指令 la sp, bootstacktop 完成了什么操作，目的是什么？ tail kern_init 完成了什么操作，目的是什么？</p>
 </section>
 <section id="id3">
-<h2>练习2：完善中断处理 （需要编程）<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<h2>练习2：完善中断处理 （需要编程）<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>请编程完善trap.c中的中断处理函数trap，在对时钟中断进行处理的部分填写kern/trap/trap.c函数中处理时钟中断的部分，使操作系统每遇到100次时钟中断后，调用print_ticks子程序，向屏幕上打印一行文字”100 ticks”，在打印完10行后调用sbi.h中的shut_down()函数关机。</p>
 <p>要求完成问题1提出的相关函数实现，提交改进后的源代码包（可以编译执行），并在实验报告中简要说明实现过程和定时器中断中断处理的流程。实现要求的部分代码后，运行整个系统，大约每1秒会输出一次”100 ticks”，输出10行。</p>
 </section>
 <section id="challenge1">
-<h2>扩展练习 Challenge1：描述与理解中断流程<a class="headerlink" href="#challenge1" title="永久链接至标题"></a></h2>
+<h2>扩展练习 Challenge1：描述与理解中断流程<a class="headerlink" href="#challenge1" title="Link to this heading"></a></h2>
 <p>回答：描述ucore中处理中断异常的流程（从异常的产生开始），其中mov a0，sp的目的是什么？SAVE_ALL中寄寄存器保存在栈中的位置是什么确定的？对于任何中断，__alltraps 中都需要保存所有寄存器吗？请说明理由。</p>
 </section>
 <section id="challenge2">
-<h2>扩增练习 Challenge2：理解上下文切换机制<a class="headerlink" href="#challenge2" title="永久链接至标题"></a></h2>
+<h2>扩增练习 Challenge2：理解上下文切换机制<a class="headerlink" href="#challenge2" title="Link to this heading"></a></h2>
 <p>回答：在trapentry.S中汇编代码 csrw sscratch, sp；csrrw s0, sscratch, x0实现了什么操作，目的是什么？save all里面保存了stval scause这些csr，而在restore all里面却不还原它们？那这样store的意义何在呢？</p>
 </section>
 <section id="challenge3">
-<h2>扩展练习Challenge3：完善异常中断<a class="headerlink" href="#challenge3" title="永久链接至标题"></a></h2>
+<h2>扩展练习Challenge3：完善异常中断<a class="headerlink" href="#challenge3" title="Link to this heading"></a></h2>
 <p>编程完善在触发一条非法指令异常 mret和，在 kern/trap/trap.c的异常处理函数中捕获，并对其进行处理，简单输出异常类型和异常指令触发地址，即“Illegal instruction caught at 0x(地址)”，“ebreak caught at 0x（地址）”与“Exception type:Illegal instruction”，“Exception type: breakpoint”。（</p>
 <p><strong>tips：</strong></p>
 <ul class="simple">
@@ -137,7 +138,7 @@
 </ul>
 </section>
 <section id="id4">
-<h2><a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<h2><a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 </section>
 </section>
 

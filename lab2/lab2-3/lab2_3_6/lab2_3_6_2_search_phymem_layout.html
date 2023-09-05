@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>物理内存探测的设计思路 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/translations.js"></script>
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../../_static/translations.js?v=beaddf03"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../../genindex.html" />
     <link rel="search" title="搜索" href="../../../search.html" />
@@ -97,34 +98,102 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>物理内存探测的设计思路<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>物理内存探测的设计思路<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>操作系统怎样知道物理内存所在的那段物理地址呢？在 RISC-V 中，这个一般是由 bootloader ，即 OpenSBI 来完成的。它来完成对于包括物理内存在内的各外设的扫描，将扫描结果以 DTB(Device Tree Blob) 的格式保存在物理内存中的某个地方。随后 OpenSBI 会将其地址保存在 <code class="docutils literal notranslate"><span class="pre">a1</span></code> 寄存器中，给我们使用。</p>
 <p>这个扫描结果描述了所有外设的信息，当中也包括 Qemu 模拟的 RISC-V 计算机中的物理内存。</p>
 <blockquote>
 <div><p>扩展 <strong>Qemu 模拟的 RISC-V virt 计算机中的物理内存</strong></p>
 <p>通过查看<a class="reference external" href="https://github.com/qemu/qemu/blob/master/hw/riscv/virt.c">virt.c</a>的<strong>virt_memmap[]<strong>的定义，可以了解到 Qemu 模拟的 RISC-V virt 计算机的详细物理内存布局。可以看到，整个物理内存中有不少内存空洞（即含义为</strong>unmapped</strong>的地址空间），也有很多外设特定的地址空间，现在我们看不懂没有关系，后面会慢慢涉及到。目前只需关心最后一块含义为<strong>DRAM</strong>的地址空间，这就是 OS 将要管理的 128MB 的内存空间。</p>
-<p>| 起始地址   | 终止地址   | 含义                                                  |
-| :——— | :——— | :—————————————————- |
-| 0x0        | 0x100      | QEMU VIRT_DEBUG                                       |
-| 0x100      | 0x1000     | unmapped                                              |
-| 0x1000     | 0x12000    | QEMU MROM (包括 hard-coded reset vector; device tree) |
-| 0x12000    | 0x100000   | unmapped                                              |
-| 0x100000   | 0x101000   | QEMU VIRT_TEST                                        |
-| 0x101000   | 0x2000000  | unmapped                                              |
-| 0x2000000  | 0x2010000  | QEMU VIRT_CLINT                                       |
-| 0x2010000  | 0x3000000  | unmapped                                              |
-| 0x3000000  | 0x3010000  | QEMU VIRT_PCIE_PIO                                    |
-| 0x3010000  | 0xc000000  | unmapped                                              |
-| 0xc000000  | 0x10000000 | QEMU VIRT_PLIC                                        |
-| 0x10000000 | 0x10000100 | QEMU VIRT_UART0                                       |
-| 0x10000100 | 0x10001000 | unmapped                                              |
-| 0x10001000 | 0x10002000 | QEMU VIRT_VIRTIO                                      |
-| 0x10002000 | 0x20000000 | unmapped                                              |
-| 0x20000000 | 0x24000000 | QEMU VIRT_FLASH                                       |
-| 0x24000000 | 0x30000000 | unmapped                                              |
-| 0x30000000 | 0x40000000 | QEMU VIRT_PCIE_ECAM                                   |
-| 0x40000000 | 0x80000000 | QEMU VIRT_PCIE_MMIO                                   |
-| 0x80000000 | 0x88000000 | DRAM 缺省 128MB，大小可配置                           |</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>起始地址</p></th>
+<th class="head text-left"><p>终止地址</p></th>
+<th class="head text-left"><p>含义</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>0x0</p></td>
+<td class="text-left"><p>0x100</p></td>
+<td class="text-left"><p>QEMU VIRT_DEBUG</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x100</p></td>
+<td class="text-left"><p>0x1000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x1000</p></td>
+<td class="text-left"><p>0x12000</p></td>
+<td class="text-left"><p>QEMU MROM (包括 hard-coded reset vector; device tree)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x12000</p></td>
+<td class="text-left"><p>0x100000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x100000</p></td>
+<td class="text-left"><p>0x101000</p></td>
+<td class="text-left"><p>QEMU VIRT_TEST</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x101000</p></td>
+<td class="text-left"><p>0x2000000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x2000000</p></td>
+<td class="text-left"><p>0x2010000</p></td>
+<td class="text-left"><p>QEMU VIRT_CLINT</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x2010000</p></td>
+<td class="text-left"><p>0x3000000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x3000000</p></td>
+<td class="text-left"><p>0x3010000</p></td>
+<td class="text-left"><p>QEMU VIRT_PCIE_PIO</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x3010000</p></td>
+<td class="text-left"><p>0xc000000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0xc000000</p></td>
+<td class="text-left"><p>0x10000000</p></td>
+<td class="text-left"><p>QEMU VIRT_PLIC</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x10000000</p></td>
+<td class="text-left"><p>0x10000100</p></td>
+<td class="text-left"><p>QEMU VIRT_UART0</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x10000100</p></td>
+<td class="text-left"><p>0x10001000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x10001000</p></td>
+<td class="text-left"><p>0x10002000</p></td>
+<td class="text-left"><p>QEMU VIRT_VIRTIO</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x10002000</p></td>
+<td class="text-left"><p>0x20000000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x20000000</p></td>
+<td class="text-left"><p>0x24000000</p></td>
+<td class="text-left"><p>QEMU VIRT_FLASH</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x24000000</p></td>
+<td class="text-left"><p>0x30000000</p></td>
+<td class="text-left"><p>unmapped</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x30000000</p></td>
+<td class="text-left"><p>0x40000000</p></td>
+<td class="text-left"><p>QEMU VIRT_PCIE_ECAM</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>0x40000000</p></td>
+<td class="text-left"><p>0x80000000</p></td>
+<td class="text-left"><p>QEMU VIRT_PCIE_MMIO</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>0x80000000</p></td>
+<td class="text-left"><p>0x88000000</p></td>
+<td class="text-left"><p>DRAM 缺省 128MB，大小可配置</p></td>
+</tr>
+</tbody>
+</table>
 </div></blockquote>
 <p>不过为了简单起见，我们并不打算自己去解析这个结果。因为我们知道，Qemu 规定的 DRAM 物理内存的起始物理地址为 <code class="docutils literal notranslate"><span class="pre">0x80000000</span></code> 。而在 Qemu 中，可以使用 <code class="docutils literal notranslate"><span class="pre">-m</span></code> 指定 RAM 的大小，默认是 <code class="docutils literal notranslate"><span class="pre">128MiB</span></code> 。因此，默认的 DRAM 物理内存地址范围就是 <code class="docutils literal notranslate"><span class="pre">[0x80000000,0x88000000)</span></code> 。我们直接将 DRAM 物理内存结束地址硬编码到内核中：</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/memlayout.h</span>
@@ -156,7 +225,7 @@
 <span class="cm"> * the</span>
 <span class="cm"> * corresponding physical address.  It panics if you pass it a non-kernel</span>
 <span class="cm"> * virtual address.</span>
-<span class="cm"> * */</span><span class="w"></span>
+<span class="cm"> * */</span>
 <span class="cp">#define PADDR(kva)                                                 \</span>
 <span class="cp">    ({                                                             \</span>
 <span class="cp">        uintptr_t __m_kva = (uintptr_t)(kva);                      \</span>
@@ -169,7 +238,7 @@
 <span class="cm">/* *</span>
 <span class="cm"> * KADDR - takes a physical address and returns the corresponding kernel virtual</span>
 <span class="cm"> * address. It panics if you pass an invalid physical address.</span>
-<span class="cm"> * */</span><span class="w"></span>
+<span class="cm"> * */</span>
 <span class="cm">/*</span>
 <span class="cm">#define KADDR(pa)                                                \</span>
 <span class="cm">    ({                                                           \</span>
@@ -180,98 +249,99 @@
 <span class="cm">        }                                                        \</span>
 <span class="cm">        (void *)(__m_pa + va_pa_offset);                         \</span>
 <span class="cm">    })</span>
-<span class="cm">*/</span><span class="w"></span>
-<span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pages</span><span class="p">;</span><span class="w"></span>
-<span class="k">extern</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">npage</span><span class="p">;</span><span class="w"></span>
+<span class="cm">*/</span>
+<span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pages</span><span class="p">;</span>
+<span class="k">extern</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">npage</span><span class="p">;</span>
+
 </pre></div>
 </div>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/pmm.c</span>
 
 <span class="c1">// pages指针保存的是第一个Page结构体所在的位置，也可以认为是Page结构体组成的数组的开头</span>
 <span class="c1">// 由于C语言的特性，可以把pages作为数组名使用，pages[i]表示顺序排列的第i个结构体</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pages</span><span class="p">;</span><span class="w"></span>
-<span class="kt">size_t</span><span class="w"> </span><span class="n">npage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="kt">uint64_t</span><span class="w"> </span><span class="n">va_pa_offset</span><span class="p">;</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">pages</span><span class="p">;</span>
+<span class="kt">size_t</span><span class="w"> </span><span class="n">npage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="n">va_pa_offset</span><span class="p">;</span>
 <span class="c1">// memory starts at 0x80000000 in RISC-V</span>
-<span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">nbase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DRAM_BASE</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">nbase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DRAM_BASE</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span>
 <span class="c1">//(npage - nbase)表示物理内存的页数</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">page_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">page_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">va_pa_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PHYSICAL_MEMORY_OFFSET</span><span class="p">;</span><span class="w"> </span><span class="c1">//硬编码 0xFFFFFFFF40000000</span>
 
 <span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">mem_begin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KERNEL_BEGIN_PADDR</span><span class="p">;</span><span class="c1">//硬编码 0x80200000</span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">mem_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PHYSICAL_MEMORY_END</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">KERNEL_BEGIN_PADDR</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">mem_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PHYSICAL_MEMORY_END</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">KERNEL_BEGIN_PADDR</span><span class="p">;</span>
 <span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">mem_end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PHYSICAL_MEMORY_END</span><span class="p">;</span><span class="w"> </span><span class="c1">//硬编码 0x88000000</span>
 
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;physcial memory map:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;  memory: 0x%016lx, [0x%016lx, 0x%016lx].</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">mem_size</span><span class="p">,</span><span class="w"> </span><span class="n">mem_begin</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="n">mem_end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;physcial memory map:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;  memory: 0x%016lx, [0x%016lx, 0x%016lx].</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">mem_size</span><span class="p">,</span><span class="w"> </span><span class="n">mem_begin</span><span class="p">,</span>
+<span class="w">            </span><span class="n">mem_end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
 
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">maxpa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_end</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">maxpa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_end</span><span class="p">;</span>
 
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">maxpa</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">KERNTOP</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">maxpa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KERNTOP</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">maxpa</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">KERNTOP</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">maxpa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KERNTOP</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="n">npage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maxpa</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">npage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maxpa</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">;</span>
 <span class="w">    </span>
-<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">end</span><span class="p">[];</span><span class="w"></span>
-<span class="w">    </span><span class="n">pages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ROUNDUP</span><span class="p">((</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">end</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">end</span><span class="p">[];</span>
+<span class="w">    </span><span class="n">pages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">ROUNDUP</span><span class="p">((</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">end</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">//把pages指针指向内核所占内存空间结束后的第一页</span>
 
 <span class="w">    </span><span class="c1">//一开始把所有页面都设置为保留给内核使用的，之后再设置哪些页面可以分配给其他程序</span>
-<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">npage</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">nbase</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">npage</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">nbase</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="n">SetPageReserved</span><span class="p">(</span><span class="n">pages</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">);</span><span class="c1">//记得吗？在kern/mm/memlayout.h定义的</span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">	</span><span class="c1">//从这个地方开始才是我们可以自由使用的物理内存</span>
-<span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">freemem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PADDR</span><span class="p">((</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">pages</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">npage</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">nbase</span><span class="p">));</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">freemem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PADDR</span><span class="p">((</span><span class="kt">uintptr_t</span><span class="p">)</span><span class="n">pages</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">npage</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">nbase</span><span class="p">));</span>
 <span class="w">	</span><span class="c1">//按照页面大小PGSIZE进行对齐, ROUNDUP, ROUNDDOWN是在libs/defs.h定义的</span>
-<span class="w">    </span><span class="n">mem_begin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ROUNDUP</span><span class="p">(</span><span class="n">freemem</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">mem_end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ROUNDDOWN</span><span class="p">(</span><span class="n">mem_end</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">freemem</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">mem_end</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">mem_begin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ROUNDUP</span><span class="p">(</span><span class="n">freemem</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span>
+<span class="w">    </span><span class="n">mem_end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ROUNDDOWN</span><span class="p">(</span><span class="n">mem_end</span><span class="p">,</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">freemem</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">mem_end</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">//初始化我们可以自由使用的物理内存</span>
-<span class="w">        </span><span class="n">init_memmap</span><span class="p">(</span><span class="n">pa2page</span><span class="p">(</span><span class="n">mem_begin</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="n">mem_end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">mem_begin</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">init_memmap</span><span class="p">(</span><span class="n">pa2page</span><span class="p">(</span><span class="n">mem_begin</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="n">mem_end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">mem_begin</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">PGSIZE</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>在<code class="docutils literal notranslate"><span class="pre">page_init()</span></code>的代码里，我们调用了一个函数<code class="docutils literal notranslate"><span class="pre">init_memmap()</span></code>, 这和我们的另一个结构体<code class="docutils literal notranslate"><span class="pre">pmm_manager</span></code>有关。虽然C语言基本上不支持面向对象，但我们可以用类似面向对象的思路，把”物理内存管理“的功能集中给一个结构体。我们甚至可以让函数指针作为结构体的成员，强行在C语言里支持了”成员函数“。可以看到，我们调用的<code class="docutils literal notranslate"><span class="pre">init_memmap()</span></code>实际上又调用了<code class="docutils literal notranslate"><span class="pre">pmm_manager</span></code>的一个”成员函数“。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/pmm.c</span>
 
 <span class="c1">// physical memory management</span>
-<span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">pmm_manager</span><span class="w"> </span><span class="o">*</span><span class="n">pmm_manager</span><span class="p">;</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">pmm_manager</span><span class="w"> </span><span class="o">*</span><span class="n">pmm_manager</span><span class="p">;</span>
 
 
 <span class="c1">// init_memmap - call pmm-&gt;init_memmap to build Page struct for free memory</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_memmap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">init_memmap</span><span class="p">(</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_memmap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">init_memmap</span><span class="p">(</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/pmm.h</span>
 <span class="cp">#ifndef __KERN_MM_PMM_H__</span>
 <span class="cp">#define __KERN_MM_PMM_H__</span>
 
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;assert.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;atomic.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;memlayout.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mmu.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;riscv.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;assert.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;atomic.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;memlayout.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mmu.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;riscv.h&gt;</span>
 
 <span class="c1">// pmm_manager is a physical memory management class. A special pmm manager -</span>
 <span class="c1">// XXX_pmm_manager</span>
 <span class="c1">// only needs to implement the methods in pmm_manager class, then</span>
 <span class="c1">// XXX_pmm_manager can be used</span>
 <span class="c1">// by ucore to manage the total physical memory space.</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">pmm_manager</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">pmm_manager</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">;</span><span class="w">  </span><span class="c1">// XXX_pmm_manager&#39;s name</span>
-<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init</span><span class="p">)(</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init</span><span class="p">)(</span>
 <span class="w">        </span><span class="kt">void</span><span class="p">);</span><span class="w">  </span><span class="c1">// 初始化XXX_pmm_manager内部的数据结构（如空闲页面的链表）</span>
-<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init_memmap</span><span class="p">)(</span><span class="w"></span>
-<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init_memmap</span><span class="p">)(</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span>
 <span class="w">        </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w">  </span><span class="c1">//知道了可用的物理页面数目之后，进行更详细的初始化</span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">)(</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">)(</span>
 <span class="w">        </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w">  </span><span class="c1">// 分配至少n个物理页面, 根据分配算法可能返回不同的结果</span>
 <span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">free_pages</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w">  </span><span class="c1">// free &gt;=n pages with</span>
 <span class="w">                                                      </span><span class="c1">// &quot;base&quot; addr of Page</span>
@@ -279,14 +349,14 @@
 <span class="w">                                                      </span><span class="c1">// structures(memlayout.h)</span>
 <span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">nr_free_pages</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span><span class="w">  </span><span class="c1">// 返回空闲物理页面的数目</span>
 <span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">check</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span><span class="w">            </span><span class="c1">// 测试正确性</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 
-<span class="k">extern</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">pmm_manager</span><span class="w"> </span><span class="o">*</span><span class="n">pmm_manager</span><span class="p">;</span><span class="w"></span>
+<span class="k">extern</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">pmm_manager</span><span class="w"> </span><span class="o">*</span><span class="n">pmm_manager</span><span class="p">;</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">pmm_init</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">pmm_init</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
 
-<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w"></span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">free_pages</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">);</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">free_pages</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">);</span>
 <span class="kt">size_t</span><span class="w"> </span><span class="nf">nr_free_pages</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"> </span><span class="c1">// number of free pages</span>
 
 <span class="cp">#define alloc_page() alloc_pages(1)</span>
@@ -296,41 +366,41 @@
 <p>pmm_manager提供了各种接口：分配页面，释放页面，查看当前空闲页面数。但是我们好像始终没看见pmm_manager内部对这些接口的实现，其实是因为那些接口只是作为函数指针，作为pmm_manager的一部分，我们需要把那些函数指针变量赋值为真正的函数名称。</p>
 <p>还记得最早我们在<code class="docutils literal notranslate"><span class="pre">pmm_init()</span></code>里首先调用了<code class="docutils literal notranslate"><span class="pre">init_pmm_manager()</span></code>, 在这里面我们把pmm_manager的指针赋值成<code class="docutils literal notranslate"><span class="pre">&amp;default_pmm_manager</span></code>， 看起来我们在这里实现了那些接口。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// init_pmm_manager - initialize a pmm_manager instance</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_pmm_manager</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">pmm_manager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">default_pmm_manager</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;memory management: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">init</span><span class="p">();</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">init_pmm_manager</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">pmm_manager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">default_pmm_manager</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;memory management: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+<span class="w">    </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">init</span><span class="p">();</span>
+<span class="p">}</span>
 <span class="c1">// alloc_pages - call pmm-&gt;alloc_pages to allocate a continuous n*PAGESIZE</span>
 <span class="c1">// memory</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// 在这里编写你的物理内存分配算法。</span>
 <span class="w">    </span><span class="c1">// 你可以参考nr_free_pages() 函数进行设计，</span>
 <span class="w">    </span><span class="c1">// 了解物理内存管理器的工作原理，然后在这里实现自己的分配算法。</span>
 <span class="w">    </span><span class="c1">// 实现算法后，调用 pmm_manager-&gt;alloc_pages(n) 来分配物理内存，</span>
 <span class="w">    </span><span class="c1">// 然后返回分配的 Page 结构指针。</span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span>
 
 <span class="c1">// free_pages - call pmm-&gt;free_pages to free a continuous n*PAGESIZE memory</span>
-<span class="kt">void</span><span class="w"> </span><span class="n">free_pages</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="n">free_pages</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// 在这里编写你的物理内存释放算法。</span>
 <span class="w">    </span><span class="c1">// 你可以参考nr_free_pages() 函数进行设计，</span>
 <span class="w">    </span><span class="c1">// 了解物理内存管理器的工作原理，然后在这里实现自己的释放算法。</span>
 <span class="w">    </span><span class="c1">// 实现算法后，调用 pmm_manager-&gt;free_pages(base, n) 来释放物理内存。</span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span>
 
 <span class="c1">// nr_free_pages - call pmm-&gt;nr_free_pages to get the size (nr*PAGESIZE)</span>
 <span class="c1">// of current free memory</span>
-<span class="kt">size_t</span><span class="w"> </span><span class="n">nr_free_pages</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">nr_free_pages</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">size_t</span><span class="w"> </span><span class="n">nr_free_pages</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span>
+<span class="w">    </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">nr_free_pages</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>到现在，我们距离完整的内存管理， 就只差<code class="docutils literal notranslate"><span class="pre">default_pmm_manager</span></code>结构体的实现了，也就是我们要在里面实现页面分配算法。</p>

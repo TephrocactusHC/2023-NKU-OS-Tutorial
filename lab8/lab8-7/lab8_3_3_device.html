@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>设备 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -105,25 +106,25 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>设备<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>设备<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>在本实验中，为了统一地访问设备(device)，我们可以把一个设备看成一个文件，通过访问文件的接口来访问设备。目前实现了 stdin 设备文件文件、stdout 设备文件、disk0 设备。stdin 设备就是键盘，stdout 设备就是控制台终端的文本显示，而 disk0 设备是承载 SFS 文件系统的磁盘设备。下面看看 ucore 是如何让用户把设备看成文件来访问。</p>
 <section id="id2">
-<h2>设备的定义<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>设备的定义<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>为了表示一个设备，需要有对应的数据结构，ucore 为此定义了 struct device，如下：</p>
 <p>可以认为<code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">device</span></code>是一个比较抽象的“设备”的定义。一个具体设备，只要实现了<code class="docutils literal notranslate"><span class="pre">d_open()</span></code>打开设备， <code class="docutils literal notranslate"><span class="pre">d_close()</span></code>关闭设备，<code class="docutils literal notranslate"><span class="pre">d_io()</span></code>(读写该设备，write参数是true/false决定是读还是写)，<code class="docutils literal notranslate"><span class="pre">d_ioctl()</span></code>(input/output control)四个函数接口，就可以被文件系统使用了。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/fs/devs/dev.h</span>
 <span class="cm">/*</span>
 <span class="cm"> * Filesystem-namespace-accessible device.</span>
 <span class="cm"> * d_io is for both reads and writes; the iobuf will indicates the direction.</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">d_blocks</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">d_blocksize</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_open</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">open_flags</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_close</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_io</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_ioctl</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">);</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">d_blocks</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">d_blocksize</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_open</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">open_flags</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_close</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_io</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">d_ioctl</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">op</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">);</span>
+<span class="p">};</span>
 
 <span class="cp">#define dop_open(dev, open_flags)           ((dev)-&gt;d_open(dev, open_flags))</span>
 <span class="cp">#define dop_close(dev)                      ((dev)-&gt;d_close(dev))</span>
@@ -136,185 +137,186 @@
 <p>利用 vfs_dev_t 数据结构，就可以让文件系统通过一个链接 vfs_dev_t 结构的双向链表找到 device 对应的 inode 数据结构，一个 inode 节点的成员变量 in_type 的值是 0x1234，则此 inode 的成员变量 in_info 将成为一个 device 结构。这样 inode 就和一个设备建立了联系，这个 inode 就是一个设备文件。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/fs/vfs/vfsdev.c</span>
 <span class="c1">// device info entry in vdev_list </span>
-<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">devname</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">devnode</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">fs</span><span class="w"> </span><span class="o">*</span><span class="n">fs</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">mountable</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">vdev_link</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="n">vfs_dev_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">devname</span><span class="p">;</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">devnode</span><span class="p">;</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">fs</span><span class="w"> </span><span class="o">*</span><span class="n">fs</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">mountable</span><span class="p">;</span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">vdev_link</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">vfs_dev_t</span><span class="p">;</span>
 <span class="cp">#define le2vdev(le, member)                         \</span>
 <span class="cp">    to_struct((le), vfs_dev_t, member) </span><span class="c1">//为了使用链表定义的宏, 做到现在应该对它很熟悉了</span>
 
 <span class="k">static</span><span class="w"> </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">vdev_list</span><span class="p">;</span><span class="w">     </span><span class="c1">// device info list in vfs layer</span>
 <span class="k">static</span><span class="w"> </span><span class="n">semaphore_t</span><span class="w"> </span><span class="n">vdev_list_sem</span><span class="p">;</span><span class="w"> </span><span class="c1">// 互斥访问的semaphore</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">lock_vdev_list</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">down</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vdev_list_sem</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">unlock_vdev_list</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">up</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vdev_list_sem</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">lock_vdev_list</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">down</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vdev_list_sem</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">unlock_vdev_list</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">up</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vdev_list_sem</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>ucore 虚拟文件系统为了把这些设备链接在一起，还定义了一个设备链表，即双向链表 vdev_list，这样通过访问此链表，可以找到 ucore 能够访问的所有设备文件。</p>
 <p>注意这里的<code class="docutils literal notranslate"><span class="pre">vdev_list</span></code>对应一个<code class="docutils literal notranslate"><span class="pre">vdev_list_sem</span></code>。在文件系统中，互斥访问非常重要，所以我们将看到很多的<code class="docutils literal notranslate"><span class="pre">semaphore</span></code>。</p>
 <p>我们使用<code class="docutils literal notranslate"><span class="pre">iobuf</span></code>结构体传递一个IO请求（要写入设备的数据当前所在内存的位置和长度/从设备读取的数据需要存储到的位置）</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">io_base</span><span class="p">;</span><span class="w">     </span><span class="c1">// the base addr of buffer (used for Rd/Wr)</span>
 <span class="w">    </span><span class="kt">off_t</span><span class="w"> </span><span class="n">io_offset</span><span class="p">;</span><span class="w">   </span><span class="c1">// current Rd/Wr position in buffer, will have been incremented by the amount transferred</span>
 <span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">io_len</span><span class="p">;</span><span class="w">     </span><span class="c1">// the length of buffer  (used for Rd/Wr)</span>
 <span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">io_resid</span><span class="p">;</span><span class="w">   </span><span class="c1">// current resident length need to Rd/Wr, will have been decremented by the amount transferred.</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>注意设备文件的inode也有一个<code class="docutils literal notranslate"><span class="pre">inode_ops</span></code>成员, 提供设备文件应具备的接口。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/fs/devs/dev.c	</span>
 <span class="cm">/*</span>
 <span class="cm"> * Function table for device inodes.</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode_ops</span><span class="w"> </span><span class="n">dev_node_ops</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_magic</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">VOP_MAGIC</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_open</span><span class="w">                       </span><span class="o">=</span><span class="w"> </span><span class="n">dev_open</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_close</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_close</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_read</span><span class="w">                       </span><span class="o">=</span><span class="w"> </span><span class="n">dev_read</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_write</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_write</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_fstat</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_fstat</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_ioctl</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_ioctl</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_gettype</span><span class="w">                    </span><span class="o">=</span><span class="w"> </span><span class="n">dev_gettype</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_tryseek</span><span class="w">                    </span><span class="o">=</span><span class="w"> </span><span class="n">dev_tryseek</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">vop_lookup</span><span class="w">                     </span><span class="o">=</span><span class="w"> </span><span class="n">dev_lookup</span><span class="p">,</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode_ops</span><span class="w"> </span><span class="n">dev_node_ops</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_magic</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">VOP_MAGIC</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_open</span><span class="w">                       </span><span class="o">=</span><span class="w"> </span><span class="n">dev_open</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_close</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_close</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_read</span><span class="w">                       </span><span class="o">=</span><span class="w"> </span><span class="n">dev_read</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_write</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_write</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_fstat</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_fstat</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_ioctl</span><span class="w">                      </span><span class="o">=</span><span class="w"> </span><span class="n">dev_ioctl</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_gettype</span><span class="w">                    </span><span class="o">=</span><span class="w"> </span><span class="n">dev_gettype</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_tryseek</span><span class="w">                    </span><span class="o">=</span><span class="w"> </span><span class="n">dev_tryseek</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">vop_lookup</span><span class="w">                     </span><span class="o">=</span><span class="w"> </span><span class="n">dev_lookup</span><span class="p">,</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 </section>
 <section id="stdin">
-<h2>stdin设备<a class="headerlink" href="#stdin" title="永久链接至标题"></a></h2>
+<h2>stdin设备<a class="headerlink" href="#stdin" title="Link to this heading"></a></h2>
 <p>trap.c改变了对<code class="docutils literal notranslate"><span class="pre">stdin</span></code>的处理, 将<code class="docutils literal notranslate"><span class="pre">stdin</span></code>作为一个设备(也是一个文件), 通过<code class="docutils literal notranslate"><span class="pre">sys_read()</span></code>接口读取标准输入的数据。</p>
 <p>注意，既然我们把<code class="docutils literal notranslate"><span class="pre">stdin</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout</span></code>看作文件， 那么也需要先打开文件，才能进行读写。在执行用户程序之前，我们先执行了<code class="docutils literal notranslate"><span class="pre">umain.c</span></code>建立一个运行时环境，这里主要做的工作，就是让程序能够使用<code class="docutils literal notranslate"><span class="pre">stdin</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout</span></code>。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// user/libs/file.c</span>
 <span class="c1">//这是用户态程序可以使用的“系统库函数”，从文件fd读取len个字节到base这个位置。</span>
 <span class="c1">//当fd = 0的时候，表示从stdin读取</span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sys_read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sys_read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">base</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="p">);</span>
+<span class="p">}</span>
 <span class="c1">// user/libs/umain.c</span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[]);</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[]);</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">initfd</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fd2</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">open_flags</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">fd1</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">initfd</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fd2</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">open_flags</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">fd1</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">fd1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">open_flags</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">fd1</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">fd1</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span><span class="c1">//我们希望文件描述符是fd2, 但是分配的fd1如果不等于fd2, 就需要做一些处理</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">fd1</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">fd2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">close</span><span class="p">(</span><span class="n">fd2</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">fd1</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">fd2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">close</span><span class="p">(</span><span class="n">fd2</span><span class="p">);</span>
 <span class="w">        </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dup2</span><span class="p">(</span><span class="n">fd1</span><span class="p">,</span><span class="w"> </span><span class="n">fd2</span><span class="p">);</span><span class="c1">//通过sys_dup让两个文件描述符指向同一个文件</span>
-<span class="w">        </span><span class="n">close</span><span class="p">(</span><span class="n">fd1</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">close</span><span class="p">(</span><span class="n">fd1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">umain</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">fd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">initfd</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;stdin:&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_RDONLY</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;open &lt;stdin&gt; failed: %e.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">umain</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">fd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">initfd</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;stdin:&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_RDONLY</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;open &lt;stdin&gt; failed: %e.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span>
 <span class="w">    </span><span class="p">}</span><span class="c1">//0用于描述stdin，这里因为第一个被打开，所以stdin会分配到0</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">fd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">initfd</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;stdout:&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_WRONLY</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;open &lt;stdout&gt; failed: %e.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">fd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">initfd</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;stdout:&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_WRONLY</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;open &lt;stdout&gt; failed: %e.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span>
 <span class="w">    </span><span class="p">}</span><span class="c1">//1用于描述stdout</span>
 <span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span><span class="w"> </span><span class="c1">//真正的“用户程序”</span>
-<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span>
+<span class="p">}</span>
+
 </pre></div>
 </div>
 <p>这里我们需要把命令行的输入转换成一个文件，于是需要一个缓冲区：把已经在命令行输入，但还没有被读取的数据放在缓冲区里。这里遇到一个问题：每当控制台输入一个字符，我们都要及时把它放到<code class="docutils literal notranslate"><span class="pre">stdin</span></code>的缓冲区里。一般来说，应当有键盘的外设中断来提醒我们。但是我们在QEMU里收不到这个中断，于是采取一个措施：借助时钟中断，每次时钟中断检查是否有新的字符，这效率比较低，不过也还可以接受。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/trap/trap.c</span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">interrupt_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">intptr_t</span><span class="w"> </span><span class="n">cause</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">       </span><span class="cm">/*...*/</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_S_TIMER</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">clock_set_next_event</span><span class="p">();</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">interrupt_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">intptr_t</span><span class="w"> </span><span class="n">cause</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">       </span><span class="cm">/*...*/</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_S_TIMER</span><span class="p">:</span>
+<span class="w">            </span><span class="n">clock_set_next_event</span><span class="p">();</span>
 
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">++</span><span class="n">ticks</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">TICK_NUM</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">current</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">++</span><span class="n">ticks</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">TICK_NUM</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">current</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">                </span><span class="c1">// print_ticks();</span>
-<span class="w">                </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">need_resched</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">            </span><span class="n">run_timer_list</span><span class="p">();</span><span class="w"></span>
+<span class="w">                </span><span class="n">current</span><span class="o">-&gt;</span><span class="n">need_resched</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="n">run_timer_list</span><span class="p">();</span>
 <span class="w">            </span><span class="c1">//按理说用户程序看到的stdin是“只读”的</span>
 <span class="w">            </span><span class="c1">//但是，一个文件，只往外读，不往里写，是不是会导致数据&quot;不守恒&quot;?</span>
 <span class="w">            </span><span class="c1">//我们在这里就是把控制台输入的数据“写到”stdin里(实际上是写到一个缓冲区里)</span>
 <span class="w">            </span><span class="c1">//这里的cons_getc()并不一定能返回一个字符,可以认为是轮询</span>
 <span class="w">    		</span><span class="c1">//如果cons_getc()返回0, 那么dev_stdin_write()函数什么都不做</span>
-<span class="w">            </span><span class="n">dev_stdin_write</span><span class="p">(</span><span class="n">cons_getc</span><span class="p">());</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="n">dev_stdin_write</span><span class="p">(</span><span class="n">cons_getc</span><span class="p">());</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 <span class="c1">// kern/driver/console.c</span>
 
 <span class="cp">#define CONSBUFSIZE 512</span>
 
-<span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">CONSBUFSIZE</span><span class="p">];</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rpos</span><span class="p">;</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">CONSBUFSIZE</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rpos</span><span class="p">;</span>
 <span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">wpos</span><span class="p">;</span><span class="w"> </span><span class="c1">//控制台的输入缓冲区是一个队列</span>
-<span class="p">}</span><span class="w"> </span><span class="n">cons</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">cons</span><span class="p">;</span>
 
 <span class="cm">/* *</span>
 <span class="cm"> * cons_intr - called by device interrupt routines to feed input</span>
 <span class="cm"> * characters into the circular console input buffer.</span>
-<span class="cm"> * */</span><span class="w"></span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">cons_intr</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">proc</span><span class="p">)(</span><span class="kt">void</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">proc</span><span class="p">)())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">cons</span><span class="p">.</span><span class="n">buf</span><span class="p">[</span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CONSBUFSIZE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
-<span class="cm">/* serial_proc_data - get data from serial port */</span><span class="w"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">serial_proc_data</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sbi_console_getchar</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">127</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;\b&#39;</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm"> * */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">cons_intr</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">proc</span><span class="p">)(</span><span class="kt">void</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">;</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">proc</span><span class="p">)())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">cons</span><span class="p">.</span><span class="n">buf</span><span class="p">[</span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">;</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CONSBUFSIZE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+<span class="cm">/* serial_proc_data - get data from serial port */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">serial_proc_data</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sbi_console_getchar</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">127</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;\b&#39;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
 
-<span class="cm">/* serial_intr - try to feed input characters from serial port */</span><span class="w"></span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">serial_intr</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">cons_intr</span><span class="p">(</span><span class="n">serial_proc_data</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm">/* serial_intr - try to feed input characters from serial port */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">serial_intr</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cons_intr</span><span class="p">(</span><span class="n">serial_proc_data</span><span class="p">);</span>
+<span class="p">}</span>
 <span class="cm">/* *</span>
 <span class="cm"> * cons_getc - return the next input character from console,</span>
 <span class="cm"> * or 0 if none waiting.</span>
-<span class="cm"> * */</span><span class="w"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">cons_getc</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="cm"> * */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">cons_getc</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span>
+<span class="w">    </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// poll for any pending input characters,</span>
 <span class="w">        </span><span class="c1">// so that this function works even when interrupts are disabled</span>
 <span class="w">        </span><span class="c1">// (e.g., when called from the kernel monitor).</span>
-<span class="w">        </span><span class="n">serial_intr</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="n">serial_intr</span><span class="p">();</span>
 
 <span class="w">        </span><span class="c1">// grab the next character from the input buffer.</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cons</span><span class="p">.</span><span class="n">buf</span><span class="p">[</span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="o">++</span><span class="p">];</span><span class="w"></span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CONSBUFSIZE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">cons</span><span class="p">.</span><span class="n">wpos</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cons</span><span class="p">.</span><span class="n">buf</span><span class="p">[</span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="o">++</span><span class="p">];</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CONSBUFSIZE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">cons</span><span class="p">.</span><span class="n">rpos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>我们来看<code class="docutils literal notranslate"><span class="pre">stdin</span></code>设备的实现:</p>
@@ -323,168 +325,169 @@
 <span class="cp">#define STDIN_BUFSIZE               4096</span>
 <span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">stdin_buffer</span><span class="p">[</span><span class="n">STDIN_BUFSIZE</span><span class="p">];</span><span class="w"> </span>
 <span class="c1">//这里又有一个stdin设备的缓冲区, 能否和之前console的缓冲区合并?</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">off_t</span><span class="w"> </span><span class="n">p_rpos</span><span class="p">,</span><span class="w"> </span><span class="n">p_wpos</span><span class="p">;</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="n">wait_queue_t</span><span class="w"> </span><span class="n">__wait_queue</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">wait_queue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">__wait_queue</span><span class="p">;</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">off_t</span><span class="w"> </span><span class="n">p_rpos</span><span class="p">,</span><span class="w"> </span><span class="n">p_wpos</span><span class="p">;</span>
+<span class="k">static</span><span class="w"> </span><span class="n">wait_queue_t</span><span class="w"> </span><span class="n">__wait_queue</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">wait_queue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">__wait_queue</span><span class="p">;</span>
 
 <span class="kt">void</span><span class="w"> </span><span class="nf">dev_stdin_write</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//把其他地方的字符写到stdin缓冲区, 准备被读取</span>
-<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="sc">&#39;\0&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span>
 <span class="w">        </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="c1">//禁用中断</span>
-<span class="w">        </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">stdin_buffer</span><span class="p">[</span><span class="n">p_wpos</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">STDIN_BUFSIZE</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">p_wpos</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">p_rpos</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">STDIN_BUFSIZE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">p_wpos</span><span class="w"> </span><span class="o">++</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">wait_queue_empty</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">wakeup_queue</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">,</span><span class="w"> </span><span class="n">WT_KBD</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">stdin_buffer</span><span class="p">[</span><span class="n">p_wpos</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">STDIN_BUFSIZE</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c</span><span class="p">;</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">p_wpos</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">p_rpos</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">STDIN_BUFSIZE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">p_wpos</span><span class="w"> </span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">wait_queue_empty</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">wakeup_queue</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">,</span><span class="w"> </span><span class="n">WT_KBD</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
 <span class="w">                </span><span class="c1">//若当前有进程在等待字符输入, 则进行唤醒</span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 <span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">dev_stdin_read</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//读取len个字符</span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(;</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">len</span><span class="p">;</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">++</span><span class="p">,</span><span class="w"> </span><span class="n">p_rpos</span><span class="w"> </span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nl">try_again</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span>
+<span class="w">    </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(;</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">len</span><span class="p">;</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">++</span><span class="p">,</span><span class="w"> </span><span class="n">p_rpos</span><span class="w"> </span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nl">try_again</span><span class="p">:</span>
 <span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">p_rpos</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">p_wpos</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="c1">//当前队列非空</span>
-<span class="w">                </span><span class="o">*</span><span class="n">buf</span><span class="w"> </span><span class="o">++</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stdin_buffer</span><span class="p">[</span><span class="n">p_rpos</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">STDIN_BUFSIZE</span><span class="p">];</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">            </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="o">*</span><span class="n">buf</span><span class="w"> </span><span class="o">++</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stdin_buffer</span><span class="p">[</span><span class="n">p_rpos</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">STDIN_BUFSIZE</span><span class="p">];</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">                </span><span class="c1">//希望读取字符, 但是当前没有字符, 那么进行等待</span>
-<span class="w">                </span><span class="n">wait_t</span><span class="w"> </span><span class="n">__wait</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">wait</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">__wait</span><span class="p">;</span><span class="w"></span>
-<span class="w">                </span><span class="n">wait_current_set</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">,</span><span class="w"> </span><span class="n">wait</span><span class="p">,</span><span class="w"> </span><span class="n">WT_KBD</span><span class="p">);</span><span class="w"></span>
-<span class="w">                </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
+<span class="w">                </span><span class="n">wait_t</span><span class="w"> </span><span class="n">__wait</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">wait</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">__wait</span><span class="p">;</span>
+<span class="w">                </span><span class="n">wait_current_set</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">,</span><span class="w"> </span><span class="n">wait</span><span class="p">,</span><span class="w"> </span><span class="n">WT_KBD</span><span class="p">);</span>
+<span class="w">                </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
 
-<span class="w">                </span><span class="n">schedule</span><span class="p">();</span><span class="w"></span>
+<span class="w">                </span><span class="n">schedule</span><span class="p">();</span>
 
-<span class="w">                </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">                </span><span class="n">wait_current_del</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">,</span><span class="w"> </span><span class="n">wait</span><span class="p">);</span><span class="w"></span>
-<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wait</span><span class="o">-&gt;</span><span class="n">wakeup_flags</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">WT_KBD</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">                </span><span class="n">wait_current_del</span><span class="p">(</span><span class="n">wait_queue</span><span class="p">,</span><span class="w"> </span><span class="n">wait</span><span class="p">);</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wait</span><span class="o">-&gt;</span><span class="n">wakeup_flags</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">WT_KBD</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">                    </span><span class="k">goto</span><span class="w"> </span><span class="n">try_again</span><span class="p">;</span><span class="w"> </span><span class="c1">//再次尝试</span>
-<span class="w">                </span><span class="p">}</span><span class="w"></span>
-<span class="w">                </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">stdin_io</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">break</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">stdin_io</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">//对应struct device 的d_io()</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dev_stdin_read</span><span class="p">(</span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_base</span><span class="p">,</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="p">))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dev_stdin_read</span><span class="p">(</span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_base</span><span class="p">,</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="p">))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span>
+<span class="p">}</span>
+
 </pre></div>
 </div>
 </section>
 <section id="stdout">
-<h2>stdout设备<a class="headerlink" href="#stdout" title="永久链接至标题"></a></h2>
+<h2>stdout设备<a class="headerlink" href="#stdout" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">stdout</span></code>设备只需要支持写操作，调用<code class="docutils literal notranslate"><span class="pre">cputchar()</span></code>把字符打印到控制台。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/fs/devs/dev_stdout.c</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">stdout_io</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">stdout_io</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">//对应struct device 的d_io()</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_base</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(;</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="w"> </span><span class="o">--</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">cputchar</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">++</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_base</span><span class="p">;</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(;</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="w"> </span><span class="o">--</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">cputchar</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="w"> </span><span class="o">++</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">    </span><span class="c1">//if !write:</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span><span class="c1">//对stdout执行读操作会报错</span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
 <section id="disk0">
-<h2>disk0设备<a class="headerlink" href="#disk0" title="永久链接至标题"></a></h2>
+<h2>disk0设备<a class="headerlink" href="#disk0" title="Link to this heading"></a></h2>
 <p>封装了一下<code class="docutils literal notranslate"><span class="pre">ramdisk</span></code>的接口，每次读取或者写入若干个block。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/fs/devs/dev_disk0.c</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">disk0_buffer</span><span class="p">;</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="n">semaphore_t</span><span class="w"> </span><span class="n">disk0_sem</span><span class="p">;</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">disk0_buffer</span><span class="p">;</span>
+<span class="k">static</span><span class="w"> </span><span class="n">semaphore_t</span><span class="w"> </span><span class="n">disk0_sem</span><span class="p">;</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
-<span class="nf">lock_disk0</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">down</span><span class="p">(</span><span class="o">&amp;</span><span class="p">(</span><span class="n">disk0_sem</span><span class="p">));</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">lock_disk0</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">down</span><span class="p">(</span><span class="o">&amp;</span><span class="p">(</span><span class="n">disk0_sem</span><span class="p">));</span>
+<span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
-<span class="nf">unlock_disk0</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">up</span><span class="p">(</span><span class="o">&amp;</span><span class="p">(</span><span class="n">disk0_sem</span><span class="p">));</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">unlock_disk0</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">up</span><span class="p">(</span><span class="o">&amp;</span><span class="p">(</span><span class="n">disk0_sem</span><span class="p">));</span>
+<span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">disk0_read_blks_nolock</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">nblks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">sectno</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ide_read_secs</span><span class="p">(</span><span class="n">DISK0_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;disk0: read blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">                </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">disk0_read_blks_nolock</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">nblks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">sectno</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ide_read_secs</span><span class="p">(</span><span class="n">DISK0_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;disk0: read blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">disk0_write_blks_nolock</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">nblks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">sectno</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ide_write_secs</span><span class="p">(</span><span class="n">DISK0_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;disk0: write blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">                </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">disk0_write_blks_nolock</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">nblks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">sectno</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">DISK0_BLK_NSECT</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ide_write_secs</span><span class="p">(</span><span class="n">DISK0_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;disk0: write blkno = %d (sectno = %d), nblks = %d (nsecs = %d): 0x%08x.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">sectno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">disk0_io</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">off_t</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_offset</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">resid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resid</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">disk0_io</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">off_t</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_offset</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">resid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iob</span><span class="o">-&gt;</span><span class="n">io_resid</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resid</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span>
 
-<span class="w">    </span><span class="cm">/* don&#39;t allow I/O that isn&#39;t block-aligned */</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">offset</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">resid</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* don&#39;t allow I/O that isn&#39;t block-aligned */</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">offset</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">resid</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="cm">/* don&#39;t allow I/O past the end of disk0 */</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">blkno</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">d_blocks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* don&#39;t allow I/O past the end of disk0 */</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">blkno</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">nblks</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">d_blocks</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">-</span><span class="n">E_INVAL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="cm">/* read/write nothing ? */</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nblks</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* read/write nothing ? */</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nblks</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="n">lock_disk0</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">resid</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="kt">size_t</span><span class="w"> </span><span class="n">copied</span><span class="p">,</span><span class="w"> </span><span class="n">alen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DISK0_BUFSIZE</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="n">iobuf_move</span><span class="p">(</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">alen</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">copied</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">assert</span><span class="p">(</span><span class="n">copied</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">resid</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">nblks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="n">disk0_write_blks_nolock</span><span class="p">(</span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">alen</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">resid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">alen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resid</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">            </span><span class="n">nblks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alen</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span><span class="w"></span>
-<span class="w">            </span><span class="n">disk0_read_blks_nolock</span><span class="p">(</span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">iobuf_move</span><span class="p">(</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">alen</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">copied</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="n">assert</span><span class="p">(</span><span class="n">copied</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">alen</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="n">resid</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">copied</span><span class="p">,</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">nblks</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="n">unlock_disk0</span><span class="p">();</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">lock_disk0</span><span class="p">();</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">resid</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">size_t</span><span class="w"> </span><span class="n">copied</span><span class="p">,</span><span class="w"> </span><span class="n">alen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DISK0_BUFSIZE</span><span class="p">;</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">write</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">iobuf_move</span><span class="p">(</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">alen</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">copied</span><span class="p">);</span>
+<span class="w">            </span><span class="n">assert</span><span class="p">(</span><span class="n">copied</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">resid</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">            </span><span class="n">nblks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span>
+<span class="w">            </span><span class="n">disk0_write_blks_nolock</span><span class="p">(</span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">alen</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">resid</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">alen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resid</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="n">nblks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alen</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="p">;</span>
+<span class="w">            </span><span class="n">disk0_read_blks_nolock</span><span class="p">(</span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">nblks</span><span class="p">);</span>
+<span class="w">            </span><span class="n">iobuf_move</span><span class="p">(</span><span class="n">iob</span><span class="p">,</span><span class="w"> </span><span class="n">disk0_buffer</span><span class="p">,</span><span class="w"> </span><span class="n">alen</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">copied</span><span class="p">);</span>
+<span class="w">            </span><span class="n">assert</span><span class="p">(</span><span class="n">copied</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">alen</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">copied</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">DISK0_BLKSIZE</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="n">resid</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">copied</span><span class="p">,</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">nblks</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">unlock_disk0</span><span class="p">();</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>这些设备的实现看起来比较复杂，实际上属于比较麻烦的设备驱动的部分。</p>

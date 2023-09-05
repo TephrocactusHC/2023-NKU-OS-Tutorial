@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>关键数据结构和相关函数分析 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -97,7 +98,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>关键数据结构和相关函数分析<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>关键数据结构和相关函数分析<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>大家在之前的实验中都尝试了<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>这条指令，但实际上我们在QEMU里并没有真正模拟“硬盘”。为了实现“页面置换”的效果，我们采取的措施是，从内核的静态存储(static)区里面分出一块内存， 声称这块存储区域是”硬盘“，然后包裹一下给出”硬盘IO“的接口。
 这听上去很令人费解，但如果仔细思考一下，内存和硬盘，除了一个掉电后数据易失一个不易失，一个访问快一个访问慢，其实并没有本质的区别。对于我们的页面置换算法来说，也不要求硬盘上存多余页面的交换空间能够“不易失”，反正这些页面存在内存里的时候就是易失的。理论上，我们完全可以把一块机械硬盘加以改造，写好驱动之后，插到主板的内存插槽上作为内存条使用，当然我们要忽视性能方面的差距。那么我们就把QEMU模拟出来的一块ram叫做“硬盘”，用作页面置换时的交换区，完全没有问题。你可能会觉得，这样折腾一通，我们总共能使用的页面数并没有增加，原先能直接在内存里使用的一些页面变成了“硬盘”，只是在自娱自乐。这样的想法当然是没错的，不过我们在这里只是想介绍页面置换的原理，而并不关心实际性能。</p>
 <p>那么模拟二等这个过程我们在<code class="docutils literal notranslate"><span class="pre">driver/ide.h</span></code> <code class="docutils literal notranslate"><span class="pre">driver/ide.c</span></code> <code class="docutils literal notranslate"><span class="pre">fs/fs.h</span></code> <code class="docutils literal notranslate"><span class="pre">fs/swapfs.h</span></code> <code class="docutils literal notranslate"><span class="pre">fs/swapfs.c</span></code>通过修改代码一步步实现。</p>
@@ -107,32 +108,32 @@
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/driver/ide.c</span>
 <span class="cm">/*</span>
 <span class="cm">#include&quot;s</span>
-<span class="cm">*/</span><span class="w"></span>
+<span class="cm">*/</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">ide_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">ide_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
 
 <span class="cp">#define MAX_IDE 2</span>
 <span class="cp">#define MAX_DISK_NSECS 56</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">ide</span><span class="p">[</span><span class="n">MAX_DISK_NSECS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">];</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">ide</span><span class="p">[</span><span class="n">MAX_DISK_NSECS</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">];</span>
 
-<span class="kt">bool</span><span class="w"> </span><span class="nf">ide_device_valid</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">ideno</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_IDE</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">bool</span><span class="w"> </span><span class="nf">ide_device_valid</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">ideno</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_IDE</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
 
-<span class="kt">size_t</span><span class="w"> </span><span class="nf">ide_device_size</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">MAX_DISK_NSECS</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">size_t</span><span class="w"> </span><span class="nf">ide_device_size</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">MAX_DISK_NSECS</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">ide_read_secs</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">secno</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">dst</span><span class="p">,</span><span class="w"></span>
-<span class="w">                  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">nsecs</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">ide_read_secs</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">secno</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">dst</span><span class="p">,</span>
+<span class="w">                  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">nsecs</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">//ideno: 假设挂载了多块磁盘，选择哪一块磁盘 这里我们其实只有一块“磁盘”，这个参数就没用到</span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">iobase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ide</span><span class="p">[</span><span class="n">iobase</span><span class="p">],</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">iobase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">;</span>
+<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ide</span><span class="p">[</span><span class="n">iobase</span><span class="p">],</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">ide_write_secs</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">secno</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">src</span><span class="p">,</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">ide_write_secs</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">short</span><span class="w"> </span><span class="n">ideno</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">secno</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">src</span><span class="p">,</span>
 <span class="w">                   </span><span class="kt">size_t</span><span class="w"> </span><span class="n">nsecs</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">iobase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ide</span><span class="p">[</span><span class="n">iobase</span><span class="p">],</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">iobase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">secno</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">;</span>
+<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ide</span><span class="p">[</span><span class="n">iobase</span><span class="p">],</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">nsecs</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>可以看到，我们这里所谓的“硬盘IO”，只是在内存里用<code class="docutils literal notranslate"><span class="pre">memcpy</span></code>把数据复制来复制去。同时为了逼真地模仿磁盘，我们只允许以磁盘扇区为数据传输的基本单位，也就是一次传输的数据必须是512字节的倍数，并且必须对齐。</p>
@@ -140,45 +141,45 @@
 <span class="cp">#ifndef __KERN_FS_FS_H__</span>
 <span class="cp">#define __KERN_FS_FS_H__</span>
 
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mmu.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mmu.h&gt;</span>
 
 <span class="cp">#define SECTSIZE            512</span>
 <span class="cp">#define PAGE_NSECT          (PGSIZE / SECTSIZE) </span><span class="c1">//一页需要几个磁盘扇区?</span>
 
 <span class="cp">#define SWAP_DEV_NO         1</span>
 
-<span class="cp">#endif </span><span class="cm">/* !__KERN_FS_FS_H__ */</span><span class="cp"></span>
+<span class="cp">#endif </span><span class="cm">/* !__KERN_FS_FS_H__ */</span>
 
 <span class="c1">// kern/mm/swap.h</span>
-<span class="k">extern</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="p">;</span><span class="w"></span>
+<span class="k">extern</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="p">;</span>
 <span class="c1">// kern/mm/swap.c</span>
-<span class="kt">size_t</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="p">;</span><span class="w"></span>
+<span class="kt">size_t</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="p">;</span>
 
 <span class="c1">// kern/fs/swapfs.c</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;swap.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;swapfs.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mmu.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;fs.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ide.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;pmm.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;assert.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;swap.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;swapfs.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mmu.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;fs.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ide.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;pmm.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;assert.h&gt;</span>
 
 <span class="kt">void</span><span class="w"> </span><span class="nf">swapfs_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">//做一些检查</span>
-<span class="w">    </span><span class="k">static_assert</span><span class="p">((</span><span class="n">PGSIZE</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">ide_device_valid</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;swap fs isn&#39;t available.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">static_assert</span><span class="p">((</span><span class="n">PGSIZE</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">SECTSIZE</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">ide_device_valid</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;swap fs isn&#39;t available.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">    </span><span class="c1">//swap.c/swap.h里的全局变量</span>
-<span class="w">    </span><span class="n">max_swap_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ide_device_size</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">PAGE_NSECT</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">max_swap_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ide_device_size</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">PAGE_NSECT</span><span class="p">);</span>
+<span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">swapfs_read</span><span class="p">(</span><span class="n">swap_entry_t</span><span class="w"> </span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ide_read_secs</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">swap_offset</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">page2kva</span><span class="p">(</span><span class="n">page</span><span class="p">),</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swapfs_read</span><span class="p">(</span><span class="n">swap_entry_t</span><span class="w"> </span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ide_read_secs</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">swap_offset</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">page2kva</span><span class="p">(</span><span class="n">page</span><span class="p">),</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">);</span>
+<span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">swapfs_write</span><span class="p">(</span><span class="n">swap_entry_t</span><span class="w"> </span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ide_write_secs</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">swap_offset</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">page2kva</span><span class="p">(</span><span class="n">page</span><span class="p">),</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swapfs_write</span><span class="p">(</span><span class="n">swap_entry_t</span><span class="w"> </span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ide_write_secs</span><span class="p">(</span><span class="n">SWAP_DEV_NO</span><span class="p">,</span><span class="w"> </span><span class="n">swap_offset</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">,</span><span class="w"> </span><span class="n">page2kva</span><span class="p">(</span><span class="n">page</span><span class="p">),</span><span class="w"> </span><span class="n">PAGE_NSECT</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>

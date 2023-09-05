@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>练习 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>练习<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>练习<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>对实验报告的要求：</p>
 <ul class="simple">
 <li><p>基于markdown格式来完成，以文本方式为主</p></li>
@@ -106,11 +107,11 @@
 <li><p>列出你认为OS原理中很重要，但在实验中没有对应上的知识点</p></li>
 </ul>
 <section id="id2">
-<h2>练习0：填写已有实验<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>练习0：填写已有实验<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>本实验依赖实验1/2/3/4/5。请把你做的实验2/3/4/5的代码填入本实验中代码中有“LAB1”/“LAB2”/“LAB3”/“LAB4”“LAB5”的注释相应部分。并确保编译通过。注意：为了能够正确执行lab6的测试应用程序，可能需对已完成的实验1/2/3/4/5的代码进行进一步改进。</p>
 </section>
 <section id="round-robin">
-<h2>练习1:  使用 Round Robin 调度算法（不需要编码）<a class="headerlink" href="#round-robin" title="永久链接至标题"></a></h2>
+<h2>练习1:  使用 Round Robin 调度算法（不需要编码）<a class="headerlink" href="#round-robin" title="Link to this heading"></a></h2>
 <p>完成练习0后，建议大家比较一下（可用kdiff3等文件比较软件）个人完成的lab5和练习0完成后的刚修改的lab6之间的区别，分析了解lab6采用RR调度算法后的执行过程。执行make grade，测试用例可以通过，但没有得分。</p>
 <p>请在实验报告中完成：</p>
 <ul class="simple">
@@ -123,11 +124,11 @@
 </ul>
 </section>
 <section id="stride-scheduling">
-<h2>练习2: 实现 Stride Scheduling 调度算法（需要编码）<a class="headerlink" href="#stride-scheduling" title="永久链接至标题"></a></h2>
+<h2>练习2: 实现 Stride Scheduling 调度算法（需要编码）<a class="headerlink" href="#stride-scheduling" title="Link to this heading"></a></h2>
 <p>首先需要换掉RR调度器的实现，即用default_sched_stride_c覆盖default_sched.c。然后根据此文件和后续文档对Stride度器的相关描述，完成Stride调度算法的实现。注意有“LAB6”的注释，主要是修改default_sched_swide_c中的内容。代码中所有需要完成的地方（challenge除外）都有“LAB6”和“YOUR CODE”的注释，请在提交时特别注意保持注释，并将“YOUR CODE”替换为自己的学号，并且将所有标有对应注释的部分填上正确的代码。</p>
 <p>后面的实验文档部分给出了Stride调度算法的大体描述。这里给出Stride调度算法的一些相关的资料（目前网上中文的资料比较欠缺）。</p>
 <ul class="simple">
-<li><p><a class="reference external" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.138.3502&amp;rank=1">strid-shed paper location</a></p></li>
+<li><p><a class="reference external" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.138.3502&amp;amp;rank=1">strid-shed paper location</a></p></li>
 <li><p>也可GOOGLE “Stride Scheduling” 来查找相关资料</p></li>
 </ul>
 <p>执行：make grade。如果所显示的应用程序检测都输出ok，则基本正确。执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>大致的显示输出见附录。</p>
@@ -138,11 +139,11 @@
 <p>请在实验报告中简要说明你的设计实现过程。</p>
 </section>
 <section id="challenge-1-linux-cfs">
-<h2>扩展练习 Challenge 1 ：实现 Linux 的 CFS 调度算法<a class="headerlink" href="#challenge-1-linux-cfs" title="永久链接至标题"></a></h2>
+<h2>扩展练习 Challenge 1 ：实现 Linux 的 CFS 调度算法<a class="headerlink" href="#challenge-1-linux-cfs" title="Link to this heading"></a></h2>
 <p>在ucore的调度器框架下实现下Linux的CFS调度算法。可阅读相关Linux内核书籍或查询网上资料，可了解CFS的细节，然后大致实现在ucore中。</p>
 </section>
 <section id="challenge-2-ucore-fifo-sjf">
-<h2>扩展练习 Challenge 2 ：在ucore上实现尽可能多的各种基本调度算法(FIFO, SJF,…)，并设计各种测试用例，能够定量地分析出各种调度算法在各种指标上的差异，说明调度算法的适用范围。<a class="headerlink" href="#challenge-2-ucore-fifo-sjf" title="永久链接至标题"></a></h2>
+<h2>扩展练习 Challenge 2 ：在ucore上实现尽可能多的各种基本调度算法(FIFO, SJF,…)，并设计各种测试用例，能够定量地分析出各种调度算法在各种指标上的差异，说明调度算法的适用范围。<a class="headerlink" href="#challenge-2-ucore-fifo-sjf" title="Link to this heading"></a></h2>
 </section>
 </section>
 

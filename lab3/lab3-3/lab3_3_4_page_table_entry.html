@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>页表项设计思路 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -97,7 +98,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>页表项设计思路<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>页表项设计思路<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>我们定义一些对sv39页表项（Page Table Entry）进行操作的宏。这里的定义和我们在Lab2里介绍的定义一致。</p>
 <p>有时候我们把多级页表中较高级别的页表（“页表的页表”）叫做<code class="docutils literal notranslate"><span class="pre">Page</span> <span class="pre">Directory</span></code>。在实验二中我们知道sv39中采用的是三级页表，那么在这里我们把页表项里从高到低三级页表的页码分别称作PDX1, PDX0和PTX(Page Table Index)。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/mmu.h</span>
@@ -105,8 +106,8 @@
 <span class="cp">#define __KERN_MM_MMU_H__</span>
 
 <span class="cp">#ifndef __ASSEMBLER__</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span><span class="cp"></span>
-<span class="cp">#endif </span><span class="cm">/* !__ASSEMBLER__ */</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span>
+<span class="cp">#endif </span><span class="cm">/* !__ASSEMBLER__ */</span>
 
 <span class="c1">// A linear address &#39;la&#39; has a four-part structure as follows:</span>
 <span class="c1">//</span>
@@ -158,7 +159,7 @@
 <span class="cp">#define PTE_ADDR(pte)   (((uintptr_t)(pte) &amp; ~0x3FF) &lt;&lt; (PTXSHIFT - PTE_PPN_SHIFT))</span>
 <span class="cp">#define PDE_ADDR(pde)   PTE_ADDR(pde)</span>
 
-<span class="cm">/* page directory and page table constants */</span><span class="w"></span>
+<span class="cm">/* page directory and page table constants */</span>
 <span class="cp">#define NPDEENTRY       512                    </span><span class="c1">// page directory entries per page directory</span>
 <span class="cp">#define NPTEENTRY       512                    </span><span class="c1">// page table entries per page table</span>
 
@@ -182,8 +183,8 @@
 </div>
 <p>上述代码定义了一些与内存管理单元（Memory Management Unit, MMU）相关的宏和常量，用于操作线性地址和物理地址，以及页表项的字段。最后我们看一下<code class="docutils literal notranslate"><span class="pre">kern/init/init.c</span></code>里的变化:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/init/init.c</span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">kern_init</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span><span class="w"></span>
-<span class="w">    </span><span class="cm">/* blabla */</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">kern_init</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span>
+<span class="w">    </span><span class="cm">/* blabla */</span>
 <span class="w">    </span><span class="n">pmm_init</span><span class="p">();</span><span class="w">                 </span><span class="c1">// init physical memory management</span>
 <span class="w">    							</span><span class="c1">// 我们加入了多级页表的接口和测试</span>
 
@@ -198,8 +199,8 @@
 <span class="w">    </span><span class="n">swap_init</span><span class="p">();</span><span class="w">                </span><span class="c1">// init swap. 新增函数, 初始化页面置换机制并测试</span>
 
 <span class="w">    </span><span class="n">clock_init</span><span class="p">();</span><span class="w">               </span><span class="c1">// init clock interrupt</span>
-<span class="w">    </span><span class="cm">/* blabla */</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="cm">/* blabla */</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>可以看到的是我们在原本的基础上又新增了一个用来初始化“硬盘”的函数<code class="docutils literal notranslate"><span class="pre">ide_init()</span></code>。</p>

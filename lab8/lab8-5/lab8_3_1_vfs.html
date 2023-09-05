@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>文件系统抽象层VFS &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -103,15 +104,15 @@
            <div itemprop="articleBody">
              
   <section id="vfs">
-<h1>文件系统抽象层VFS<a class="headerlink" href="#vfs" title="永久链接至标题"></a></h1>
+<h1>文件系统抽象层VFS<a class="headerlink" href="#vfs" title="Link to this heading"></a></h1>
 <p>文件系统抽象层是把不同文件系统的对外共性接口提取出来，形成一个函数指针数组，这样，通用文件系统访问接口层只需访问文件系统抽象层，而不需关心具体文件系统的实现细节和接口。</p>
 <section id="file-dir">
-<h2>file &amp; dir 接口<a class="headerlink" href="#file-dir" title="永久链接至标题"></a></h2>
+<h2>file &amp; dir 接口<a class="headerlink" href="#file-dir" title="Link to this heading"></a></h2>
 <p>file&amp;dir 接口层定义了进程在内核中直接访问的文件相关信息，这定义在 file 数据结构中，具体描述如下：</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/fs/file.h</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">file</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">enum</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">FD_NONE</span><span class="p">,</span><span class="w"> </span><span class="n">FD_INIT</span><span class="p">,</span><span class="w"> </span><span class="n">FD_OPENED</span><span class="p">,</span><span class="w"> </span><span class="n">FD_CLOSED</span><span class="p">,</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">file</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">enum</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">FD_NONE</span><span class="p">,</span><span class="w"> </span><span class="n">FD_INIT</span><span class="p">,</span><span class="w"> </span><span class="n">FD_OPENED</span><span class="p">,</span><span class="w"> </span><span class="n">FD_CLOSED</span><span class="p">,</span>
 <span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w">                         </span><span class="c1">//访问文件的执行状态</span>
 <span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">readable</span><span class="p">;</span><span class="w">                    </span><span class="c1">//文件是否可读</span>
 <span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">writable</span><span class="p">;</span><span class="w">                    </span><span class="c1">//文件是否可写</span>
@@ -119,53 +120,53 @@
 <span class="w">    </span><span class="kt">off_t</span><span class="w"> </span><span class="n">pos</span><span class="p">;</span><span class="w">                        </span><span class="c1">//访问文件的当前位置</span>
 <span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">;</span><span class="w">               </span><span class="c1">//该文件对应的内存inode指针</span>
 <span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">open_count</span><span class="p">;</span><span class="w">                   </span><span class="c1">//打开此文件的次数</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>而在 <code class="docutils literal notranslate"><span class="pre">kern/process/proc.h</span> </code>中的 proc_struct 结构中加入了描述了进程访问文件的数据接口 files_struct，其数据结构定义如下：</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/fs/fs.h</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">files_struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">files_struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">pwd</span><span class="p">;</span><span class="w">                </span><span class="c1">//进程当前执行目录的内存inode指针</span>
 <span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">file</span><span class="w"> </span><span class="o">*</span><span class="n">fd_array</span><span class="p">;</span><span class="w">            </span><span class="c1">//进程打开文件的数组</span>
 <span class="w">    </span><span class="n">atomic_t</span><span class="w"> </span><span class="n">files_count</span><span class="p">;</span><span class="w">             </span><span class="c1">//访问此文件的线程个数</span>
 <span class="w">    </span><span class="n">semaphore_t</span><span class="w"> </span><span class="n">files_sem</span><span class="p">;</span><span class="w">            </span><span class="c1">//确保对进程控制块中fs_struct的互斥访问</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>当创建一个进程后，该进程的 files_struct 将会被初始化或复制父进程的 files_struct。当用户进程打开一个文件时，将从 fd_array 数组中取得一个空闲 file 项，然后会把此 file 的成员变量 node 指针指向一个代表此文件的 inode 的起始地址。</p>
 </section>
 <section id="inode">
-<h2>inode 接口<a class="headerlink" href="#inode" title="永久链接至标题"></a></h2>
+<h2>inode 接口<a class="headerlink" href="#inode" title="Link to this heading"></a></h2>
 <p>index node 是位于内存的索引节点，它是 VFS 结构中的重要数据结构，因为它实际负责把不同文件系统的特定索引节点信息（甚至不能算是一个索引节点）统一封装起来，避免了进程直接访问具体文件系统。其定义如下：</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/vfs/inode.h</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">union</span><span class="w"> </span><span class="p">{</span><span class="w">                                 </span><span class="c1">//包含不同文件系统特定inode信息的union成员变量</span>
 <span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">device</span><span class="w"> </span><span class="n">__device_info</span><span class="p">;</span><span class="w">          </span><span class="c1">//设备文件系统内存inode信息</span>
 <span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">sfs_inode</span><span class="w"> </span><span class="n">__sfs_inode_info</span><span class="p">;</span><span class="w">    </span><span class="c1">//SFS文件系统内存inode信息</span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">in_info</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">enum</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">inode_type_device_info</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x1234</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="n">inode_type_sfs_inode_info</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">in_info</span><span class="p">;</span>
+<span class="w">    </span><span class="k">enum</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">inode_type_device_info</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x1234</span><span class="p">,</span>
+<span class="w">        </span><span class="n">inode_type_sfs_inode_info</span><span class="p">,</span>
 <span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">in_type</span><span class="p">;</span><span class="w">                          </span><span class="c1">//此inode所属文件系统类型</span>
 <span class="w">    </span><span class="n">atomic_t</span><span class="w"> </span><span class="n">ref_count</span><span class="p">;</span><span class="w">                 </span><span class="c1">//此inode的引用计数</span>
 <span class="w">    </span><span class="n">atomic_t</span><span class="w"> </span><span class="n">open_count</span><span class="p">;</span><span class="w">                </span><span class="c1">//打开此inode对应文件的个数</span>
 <span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">fs</span><span class="w"> </span><span class="o">*</span><span class="n">in_fs</span><span class="p">;</span><span class="w">                   </span><span class="c1">//抽象的文件系统，包含访问文件系统的函数指针</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode_ops</span><span class="w"> </span><span class="o">*</span><span class="n">in_ops</span><span class="p">;</span><span class="w">     </span><span class="c1">//抽象的inode操作，包含访问inode的函数指针</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>在 inode 中，有一成员变量为 in_ops，这是对此 inode 的操作函数指针列表，其数据结构定义如下：</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span>struct inode_ops {
-    unsigned long vop_magic;
-    int (*vop_open)(struct inode *node, uint32_t open_flags);
-    int (*vop_close)(struct inode *node);
-    int (*vop_read)(struct inode *node, struct iobuf *iob);
-    int (*vop_write)(struct inode *node, struct iobuf *iob);
-    int (*vop_getdirentry)(struct inode *node, struct iobuf *iob);
-    int (*vop_create)(struct inode *node, const char *name, bool excl, struct inode **node_store);
-int (*vop_lookup)(struct inode *node, char *path, struct inode **node_store);
-……
- };
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">inode_ops</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">vop_magic</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">vop_open</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">open_flags</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">vop_close</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">vop_read</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">vop_write</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">vop_getdirentry</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">iobuf</span><span class="w"> </span><span class="o">*</span><span class="n">iob</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">vop_create</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">excl</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">**</span><span class="n">node_store</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">vop_lookup</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">*</span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">inode</span><span class="w"> </span><span class="o">**</span><span class="n">node_store</span><span class="p">);</span>
+<span class="err">……</span>
+<span class="w"> </span><span class="p">};</span>
 </pre></div>
 </div>
 <p>参照上面对 SFS 中的索引节点操作函数的说明，可以看出 inode_ops 是对常规文件、目录、设备文件所有操作的一个抽象函数表示。对于某一具体的文件系统中的文件或目录，只需实现相关的函数，就可以被用户进程访问具体的文件了，且用户进程无需了解具体文件系统的实现细节。</p>

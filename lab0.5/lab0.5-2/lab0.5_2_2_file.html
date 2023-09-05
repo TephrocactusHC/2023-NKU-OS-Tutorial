@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>lab0 项目组成和执行流 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,68 +97,68 @@
            <div itemprop="articleBody">
              
   <section id="lab0">
-<h1>lab0 项目组成和执行流<a class="headerlink" href="#lab0" title="永久链接至标题"></a></h1>
+<h1>lab0 项目组成和执行流<a class="headerlink" href="#lab0" title="Link to this heading"></a></h1>
 <section id="id1">
-<h2>lab0的项目组成如下:<a class="headerlink" href="#id1" title="永久链接至标题"></a></h2>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span>── Makefile 
-├── kern
-│   ├── debug
-│   │   ├── assert.h
-│   │   ├── kdebug.c
-│   │   ├── kdebug.h
-│   │   ├── kmonitor.c
-│   │   ├── kmonitor.h
-│   │   ├── panic.c
-│   │   └── stab.h
-│   ├── driver
-│   │   ├── clock.c
-│   │   ├── clock.h
-│   │   ├── console.c
-│   │   ├── console.h
-│   │   ├── intr.c
-│   │   ├── intr.h
-│   │   ├── kbdreg.h
-│   │   ├── picirq.c
-│   │   └── picirq.h
-│   ├── init
-│   │   ├── entry.S
-│   │   └── init.c
-│   ├── libs
-│   │   ├── readline.c
-│   │   └── stdio.c
-│   ├── mm
-│   │   ├── memlayout.h
-│   │   ├── mmu.h
-│   │   ├── pmm.c
-│   │   └── pmm.h
-│   └── trap
-│       ├── trap.c
-│       ├── trap.h
-│       └── trapentry.S
-├── libs
-│   ├── defs.h
-│   ├── elf.h
-│   ├── error.h
-│   ├── printfmt.c
-│   ├── riscv.h
-│   ├── sbi.c
-│   ├── sbi.h
-│   ├── stdarg.h
-│   ├── stdio.h
-│   ├── string.c
-│   └── string.h
-└── tools
-    ├── function.mk
-    ├── kernel.ld
+<h2>lab0的项目组成如下:<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="err">──</span><span class="w"> </span><span class="n">Makefile</span><span class="w"> </span>
+<span class="err">├──</span><span class="w"> </span><span class="n">kern</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">debug</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">assert</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">kdebug</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">kdebug</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">kmonitor</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">kmonitor</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">panic</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">stab</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">driver</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">clock</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">clock</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">console</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">console</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">intr</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">intr</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">kbdreg</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">picirq</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">picirq</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">init</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">entry</span><span class="p">.</span><span class="n">S</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">init</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">libs</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">readline</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">stdio</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">mm</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">memlayout</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">mmu</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">pmm</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">pmm</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">trap</span>
+<span class="err">│</span><span class="w">       </span><span class="err">├──</span><span class="w"> </span><span class="n">trap</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">       </span><span class="err">├──</span><span class="w"> </span><span class="n">trap</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">       </span><span class="err">└──</span><span class="w"> </span><span class="n">trapentry</span><span class="p">.</span><span class="n">S</span>
+<span class="err">├──</span><span class="w"> </span><span class="n">libs</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">defs</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">elf</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">error</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">printfmt</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">riscv</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">sbi</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">sbi</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">stdarg</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">stdio</span><span class="p">.</span><span class="n">h</span>
+<span class="err">│</span><span class="w">   </span><span class="err">├──</span><span class="w"> </span><span class="n">string</span><span class="p">.</span><span class="n">c</span>
+<span class="err">│</span><span class="w">   </span><span class="err">└──</span><span class="w"> </span><span class="n">string</span><span class="p">.</span><span class="n">h</span>
+<span class="err">└──</span><span class="w"> </span><span class="n">tools</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="n">function</span><span class="p">.</span><span class="n">mk</span>
+<span class="w">    </span><span class="err">├──</span><span class="w"> </span><span class="n">kernel</span><span class="p">.</span><span class="n">ld</span>
 </pre></div>
 </div>
 <section id="id2">
-<h3>内核启动<a class="headerlink" href="#id2" title="永久链接至标题"></a></h3>
+<h3>内核启动<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">kern/init/entry.S</span></code>: OpenSBI启动之后将要跳转到的一段汇编代码。在这里进行内核栈的分配，然后转入C语言编写的内核初始化函数。</p>
 <p><code class="docutils literal notranslate"><span class="pre">kern/init/init.c</span></code>： C语言编写的内核入口点。主要包含<code class="docutils literal notranslate"><span class="pre">kern_init()</span></code>函数，从<code class="docutils literal notranslate"><span class="pre">kern/entry.S</span></code>跳转过来完成其他初始化工作。</p>
 </section>
 <section id="id3">
-<h3>设备驱动<a class="headerlink" href="#id3" title="永久链接至标题"></a></h3>
+<h3>设备驱动<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">kern/driver/console.c(h)</span></code>: 在QEMU上模拟的时候，唯一的“设备”是虚拟的控制台，通过OpenSBI接口使用。简单封装了OpenSBI的字符读写接口，向上提供给输入输出库。</p>
 <p><strong>库文件</strong></p>
 <p><code class="docutils literal notranslate"><span class="pre">libs/riscv.h</span></code>: 以宏的方式，定义了riscv指令集的寄存器和指令。如果在C语言里使用riscv指令，需要通过内联汇编和寄存器的编号。这个头文件把寄存器编号和内联汇编都封装成宏，使得我们可以用类似函数的方式在C语言里执行一句riscv指令。</p>
@@ -168,14 +169,14 @@
 <p><code class="docutils literal notranslate"><span class="pre">kern/errors.h</span></code>: 定义了一些内核错误类型的宏。</p>
 </section>
 <section id="id4">
-<h3>编译、链接脚本<a class="headerlink" href="#id4" title="永久链接至标题"></a></h3>
+<h3>编译、链接脚本<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">tools/kernel.ld</span></code>: ucore的链接脚本(link script), 告诉链接器如何将目标文件的section组合为可执行文件。</p>
 <p><code class="docutils literal notranslate"><span class="pre">tools/function.mk</span></code>:  定义Makefile中使用的一些函数</p>
 <p><code class="docutils literal notranslate"><span class="pre">Makefile</span></code>: GNU make编译脚本</p>
 </section>
 </section>
 <section id="id5">
-<h2>执行流<a class="headerlink" href="#id5" title="永久链接至标题"></a></h2>
+<h2>执行流<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
 <p>最小可执行内核的执行流为:</p>
 <p>加电 -&gt; OpenSBI启动 -&gt; 跳转到 0x80200000 (<code class="docutils literal notranslate"><span class="pre">kern/init/entry.S</span></code>）-&gt;进入<code class="docutils literal notranslate"><span class="pre">kern_init()</span></code>函数（<code class="docutils literal notranslate"><span class="pre">kern/init/init.c</span></code>) -&gt;调用<code class="docutils literal notranslate"><span class="pre">cprintf()</span></code>输出一行信息-&gt;结束</p>
 <p><code class="docutils literal notranslate"><span class="pre">cprintf()</span></code>函数的执行流为:</p>

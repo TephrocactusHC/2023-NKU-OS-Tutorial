@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>滴答滴答（时钟中断） &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>滴答滴答（时钟中断）<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>滴答滴答（时钟中断）<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>时钟中断需要CPU硬件的支持。CPU以”时钟周期”为工作的基本时间单位，对逻辑门的时序电路进行同步。</p>
 <p>我们的“时钟中断”实际上就是”每隔若干个时钟周期执行一次的程序“。</p>
 <p>”若干个时钟周期“是多少个？太短了肯定不行。如果时钟中断处理程序需要100个时钟周期执行，而你每50个时钟周期就触发一个时钟中断，那么间隔时间连一个完整的时钟中断程序都跑不完。如果你200个时钟周期就触发一个时钟中断，那么CPU的时间将有一半消耗在时钟中断，开销太大。一般而言，可以设置时钟中断间隔设置为CPU频率的1%，也就是每秒钟触发100次时钟中断，避免开销过大。</p>
@@ -115,19 +116,19 @@
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">//libs/sbi.c</span>
 
 <span class="c1">//当time寄存器(rdtime的返回值)为stime_value的时候触发一个时钟中断</span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">sbi_set_timer</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">stime_value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">sbi_call</span><span class="p">(</span><span class="n">SBI_SET_TIMER</span><span class="p">,</span><span class="w"> </span><span class="n">stime_value</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">sbi_set_timer</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">stime_value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sbi_call</span><span class="p">(</span><span class="n">SBI_SET_TIMER</span><span class="p">,</span><span class="w"> </span><span class="n">stime_value</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
 
 <span class="c1">// kern/driver/clock.c</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;clock.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sbi.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;riscv.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;clock.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sbi.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;riscv.h&gt;</span>
 
 <span class="c1">//volatile告诉编译器这个变量可能在其他地方被瞎改一通，所以编译器不要对这个变量瞎优化</span>
-<span class="k">volatile</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">ticks</span><span class="p">;</span><span class="w"></span>
+<span class="k">volatile</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">ticks</span><span class="p">;</span>
 
 <span class="c1">//对64位和32位架构，读取time的方法是不同的</span>
 <span class="c1">//32位架构下，需要把64位的time寄存器读到两个32位整数里，然后拼起来形成一个64位整数</span>
@@ -135,67 +136,67 @@
 <span class="c1">//__riscv_xlen是gcc定义的一个宏，可以用来区分是32位还是64位。</span>
 <span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="nf">get_time</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="c1">//返回当前时间</span>
 <span class="cp">#if __riscv_xlen == 64</span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">__asm__</span><span class="w"> </span><span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;rdtime %0&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">n</span><span class="p">));</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">n</span><span class="p">;</span>
+<span class="w">    </span><span class="n">__asm__</span><span class="w"> </span><span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;rdtime %0&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">n</span><span class="p">));</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">n</span><span class="p">;</span>
 <span class="cp">#else</span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">lo</span><span class="p">,</span><span class="w"> </span><span class="n">hi</span><span class="p">,</span><span class="w"> </span><span class="n">tmp</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">__asm__</span><span class="w"> </span><span class="n">__volatile__</span><span class="p">(</span><span class="w"></span>
-<span class="w">        </span><span class="s">&quot;1:</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="s">&quot;rdtimeh %0</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="s">&quot;rdtime %1</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="s">&quot;rdtimeh %2</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="s">&quot;bne %0, %2, 1b&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;=&amp;r&quot;</span><span class="p">(</span><span class="n">hi</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=&amp;r&quot;</span><span class="p">(</span><span class="n">lo</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=&amp;r&quot;</span><span class="p">(</span><span class="n">tmp</span><span class="p">));</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">((</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">hi</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">lo</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">lo</span><span class="p">,</span><span class="w"> </span><span class="n">hi</span><span class="p">,</span><span class="w"> </span><span class="n">tmp</span><span class="p">;</span>
+<span class="w">    </span><span class="n">__asm__</span><span class="w"> </span><span class="n">__volatile__</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;1:</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">        </span><span class="s">&quot;rdtimeh %0</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">        </span><span class="s">&quot;rdtime %1</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">        </span><span class="s">&quot;rdtimeh %2</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">        </span><span class="s">&quot;bne %0, %2, 1b&quot;</span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;=&amp;r&quot;</span><span class="p">(</span><span class="n">hi</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=&amp;r&quot;</span><span class="p">(</span><span class="n">lo</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;=&amp;r&quot;</span><span class="p">(</span><span class="n">tmp</span><span class="p">));</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">((</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">hi</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">lo</span><span class="p">;</span>
 <span class="cp">#endif</span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span>
 
 
 <span class="c1">// Hardcode timebase</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">timebase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100000</span><span class="p">;</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">timebase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100000</span><span class="p">;</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">clock_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">clock_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// sie这个CSR可以单独使能/禁用某个来源的中断。默认时钟中断是关闭的</span>
 <span class="w">    </span><span class="c1">// 所以我们要在初始化的时候，使能时钟中断</span>
 <span class="w">    </span><span class="n">set_csr</span><span class="p">(</span><span class="n">sie</span><span class="p">,</span><span class="w"> </span><span class="n">MIP_STIP</span><span class="p">);</span><span class="w"> </span><span class="c1">// enable timer interrupt in sie</span>
 <span class="w">    </span><span class="c1">//设置第一个时钟中断事件</span>
-<span class="w">    </span><span class="n">clock_set_next_event</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">clock_set_next_event</span><span class="p">();</span>
 <span class="w">    </span><span class="c1">// 初始化一个计数器</span>
-<span class="w">    </span><span class="n">ticks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">ticks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;++ setup timer interrupts</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;++ setup timer interrupts</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
 <span class="c1">//设置时钟中断：timer的数值变为当前时间 + timebase 后，触发一次时钟中断</span>
 <span class="c1">//对于QEMU, timer增加1，过去了10^-7 s， 也就是100ns</span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">clock_set_next_event</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">sbi_set_timer</span><span class="p">(</span><span class="n">get_time</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">timebase</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">clock_set_next_event</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">sbi_set_timer</span><span class="p">(</span><span class="n">get_time</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">timebase</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
 </pre></div>
 </div>
 <p>回来看trap.c里面时钟中断处理的代码, 还是很简单的：每秒100次时钟中断，触发每次时钟中断后设置10ms后触发下一次时钟中断，每触发100次时钟中断（1秒钟）输出一行信息到控制台。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/trap/trap.c</span>
-<span class="cp">#include</span><span class="cpf">&lt;clock.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="cpf">&lt;clock.h&gt;</span>
 
 <span class="cp">#define TICK_NUM 100</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">print_ticks</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;%d ticks</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">TICK_NUM</span><span class="p">);</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">print_ticks</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;%d ticks</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">TICK_NUM</span><span class="p">);</span>
 <span class="cp">#ifdef DEBUG_GRADE</span>
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;End of Test.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;EOT: kernel seems ok.&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;End of Test.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;EOT: kernel seems ok.&quot;</span><span class="p">);</span>
 <span class="cp">#endif</span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">}</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">interrupt_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">intptr_t</span><span class="w"> </span><span class="n">cause</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">       	</span><span class="cm">/* blabla 其他case*/</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_S_TIMER</span><span class="p">:</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">interrupt_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">intptr_t</span><span class="w"> </span><span class="n">cause</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">       	</span><span class="cm">/* blabla 其他case*/</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_S_TIMER</span><span class="p">:</span>
 <span class="w">            </span><span class="n">clock_set_next_event</span><span class="p">();</span><span class="c1">//发生这次时钟中断的时候，我们要设置下一次时钟中断</span>
-<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">++</span><span class="n">ticks</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">TICK_NUM</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">print_ticks</span><span class="p">();</span><span class="w"></span>
-<span class="w">            </span><span class="p">}</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="cm">/* blabla 其他case*/</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">++</span><span class="n">ticks</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">TICK_NUM</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">print_ticks</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="cm">/* blabla 其他case*/</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>现在执行<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">qemu</span></code>, 应该能看到打印一行行的<code class="docutils literal notranslate"><span class="pre">100</span> <span class="pre">ticks</span></code></p>

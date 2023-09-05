@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>实验内容 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,16 +11,17 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
     <link rel="next" title="练习" href="lab4_2_1_exercises.html" />
-    <link rel="prev" title="lab4:进程管理" href="../index.html" /> 
+    <link rel="prev" title="实验目的" href="../lab4-1/lab4_1_goals.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab4:进程管理</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab4-1/lab4_1_goals.html">实验目的</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">实验内容</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id2">提前说明</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id3">本节内容</a></li>
@@ -95,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>实验内容<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>实验内容<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>实验2/3完成了物理和虚拟内存管理，这给创建内核线程（内核线程是一种特殊的进程）打下了提供内存管理的基础。当一个程序加载到内存中运行时，首先通过ucore OS的内存管理子系统分配合适的空间，然后就需要考虑如何分时使用CPU来“并发”执行多个程序，让每个运行的程序（这里用线程或进程表示）“感到”它们各自拥有“自己”的CPU。</p>
 <p>本次实验将首先接触的是内核线程的管理。内核线程是一种特殊的进程，内核线程与用户进程的区别有两个：</p>
 <blockquote>
@@ -109,11 +111,11 @@
 <p>相关原理介绍可看附录B：【原理】进程/线程的属性与特征解析。
 .. _提前说明:</p>
 <section id="id2">
-<h2>提前说明<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>提前说明<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>需要注意的是，在ucore的调度和执行管理中，<strong>对线程和进程做了统一的处理</strong>。且由于ucore内核中的所有内核线程共享一个内核地址空间和其他资源，所以这些内核线程从属于同一个唯一的内核进程，即ucore内核本身。</p>
 </section>
 <section id="id3">
-<span id="id4"></span><h2>本节内容<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<span id="id4"></span><h2>本节内容<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="lab4_2_1_exercises.html">练习</a><ul>
@@ -134,7 +136,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
-        <a href="../index.html" class="btn btn-neutral float-left" title="lab4:进程管理" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="../lab4-1/lab4_1_goals.html" class="btn btn-neutral float-left" title="实验目的" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
         <a href="lab4_2_1_exercises.html" class="btn btn-neutral float-right" title="练习" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

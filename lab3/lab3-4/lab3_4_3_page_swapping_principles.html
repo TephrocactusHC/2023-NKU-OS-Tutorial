@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FIFO页面置换算法 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -97,7 +98,7 @@
            <div itemprop="articleBody">
              
   <section id="fifo">
-<h1>FIFO页面置换算法<a class="headerlink" href="#fifo" title="永久链接至标题"></a></h1>
+<h1>FIFO页面置换算法<a class="headerlink" href="#fifo" title="Link to this heading"></a></h1>
 <p>所谓FIFO(First in, First out)页面置换算法，相当简单，就是把所有页面排在一个队列里，每次换入页面的时候，把队列里最靠前（最早被换入）的页面置换出去。</p>
 <p>换出页面的时机相对复杂一些，针对不同的策略有不同的时机。ucore 目前大致有两种策略，即积极换出策略和消极换出策略。</p>
 <ul class="simple">
@@ -107,165 +108,165 @@
 <p>目前的框架支持第二种情况，在<code class="docutils literal notranslate"><span class="pre">alloc_pages()</span></code>里面，如果此时试图得到空闲页且没有空闲的物理页时，我们才尝试换出页面到硬盘上。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/pmm.c</span>
 <span class="c1">// alloc_pages - call pmm-&gt;alloc_pages to allocate a continuous n*PAGESIZE memory</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">alloc_pages</span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">intr_flag</span><span class="p">;</span>
 
-<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">alloc_pages</span><span class="p">(</span><span class="n">n</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">local_intr_save</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pmm_manager</span><span class="o">-&gt;</span><span class="n">alloc_pages</span><span class="p">(</span><span class="n">n</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="n">local_intr_restore</span><span class="p">(</span><span class="n">intr_flag</span><span class="p">);</span>
 <span class="w">		</span><span class="c1">//如果有足够的物理页面，就不必换出其他页面</span>
 <span class="w">        </span><span class="c1">//如果n&gt;1, 说明希望分配多个连续的页面，但是我们换出页面的时候并不能换出连续的页面</span>
 <span class="w"> 		</span><span class="c1">//swap_init_ok标志是否成功初始化了</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">swap_init_ok</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">swap_init_ok</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
 
-<span class="w">        </span><span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">check_mm_struct</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">check_mm_struct</span><span class="p">;</span>
 <span class="w">        </span><span class="n">swap_out</span><span class="p">(</span><span class="n">check_mm_struct</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="c1">//调用页面置换的”换出页面“接口。这里必有n=1</span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">page</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">page</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>类似<code class="docutils literal notranslate"><span class="pre">pmm_manager</span></code>, 我们定义<code class="docutils literal notranslate"><span class="pre">swap_manager</span></code>, 组合页面置换需要的一些函数接口。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/swap.h</span>
 
-<span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">;</span><span class="w"></span>
-<span class="w">     </span><span class="cm">/* Global initialization for the swap manager */</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init</span><span class="p">)</span><span class="w">            </span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="cm">/* Initialize the priv data inside mm_struct */</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init_mm</span><span class="p">)</span><span class="w">         </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="cm">/* Called when tick interrupt occured */</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">tick_event</span><span class="p">)</span><span class="w">      </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="cm">/* Called when map a swappable page into the mm_struct */</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">map_swappable</span><span class="p">)</span><span class="w">   </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">swap_in</span><span class="p">);</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">;</span>
+<span class="w">     </span><span class="cm">/* Global initialization for the swap manager */</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init</span><span class="p">)</span><span class="w">            </span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+<span class="w">     </span><span class="cm">/* Initialize the priv data inside mm_struct */</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init_mm</span><span class="p">)</span><span class="w">         </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">);</span>
+<span class="w">     </span><span class="cm">/* Called when tick interrupt occured */</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">tick_event</span><span class="p">)</span><span class="w">      </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">);</span>
+<span class="w">     </span><span class="cm">/* Called when map a swappable page into the mm_struct */</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">map_swappable</span><span class="p">)</span><span class="w">   </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">swap_in</span><span class="p">);</span>
 <span class="w">     </span><span class="cm">/* When a page is marked as shared, this routine is called to</span>
-<span class="cm">      * delete the addr entry from the swap manager */</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">set_unswappable</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="cm">/* Try to swap out a page, return then victim */</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">swap_out_victim</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">**</span><span class="n">ptr_page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in_tick</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="cm">/* check the page relpacement algorithm */</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">check_swap</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="cm">      * delete the addr entry from the swap manager */</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">set_unswappable</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span>
+<span class="w">     </span><span class="cm">/* Try to swap out a page, return then victim */</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">swap_out_victim</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">**</span><span class="n">ptr_page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in_tick</span><span class="p">);</span>
+<span class="w">     </span><span class="cm">/* check the page relpacement algorithm */</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">check_swap</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>我们来看<code class="docutils literal notranslate"><span class="pre">swap_in()</span></code>, <code class="docutils literal notranslate"><span class="pre">swap_out()</span></code>如何换入/换出一个页面.注意我们对物理页面的 <code class="docutils literal notranslate"><span class="pre">Page</span></code>结构体做了一些改动。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/memlayout.h</span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ref</span><span class="p">;</span><span class="w">                        </span><span class="c1">// page frame&#39;s reference counter</span>
 <span class="w">    </span><span class="n">uint_t</span><span class="w"> </span><span class="n">flags</span><span class="p">;</span><span class="w">                 </span><span class="c1">// array of flags that describe the status of the page frame</span>
 <span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">property</span><span class="p">;</span><span class="w">          </span><span class="c1">// the num of free block, used in first fit pm manager</span>
 <span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">page_link</span><span class="p">;</span><span class="w">         </span><span class="c1">// free list link</span>
 <span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">pra_page_link</span><span class="p">;</span><span class="w">     </span><span class="c1">// used for pra (page replace algorithm)</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">pra_vaddr</span><span class="p">;</span><span class="w">            </span><span class="c1">// used for pra (page replace algorithm)</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 
 <span class="c1">// kern/mm/swap.c</span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">swap_in</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">**</span><span class="n">ptr_result</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swap_in</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">**</span><span class="n">ptr_result</span><span class="p">)</span>
+<span class="p">{</span>
 <span class="w">     </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc_page</span><span class="p">();</span><span class="c1">//这里alloc_page()内部可能调用swap_out()</span>
 <span class="w">     </span><span class="c1">//找到对应的一个物理页面</span>
-<span class="w">     </span><span class="n">assert</span><span class="p">(</span><span class="n">result</span><span class="o">!=</span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">     </span><span class="n">assert</span><span class="p">(</span><span class="n">result</span><span class="o">!=</span><span class="nb">NULL</span><span class="p">);</span>
 
 <span class="w">     </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="c1">//找到/构建对应的页表项</span>
 <span class="w">	</span><span class="c1">//将物理地址映射到虚拟地址是在swap_in()退出之后，调用page_insert()完成的</span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="n">r</span><span class="p">;</span><span class="w"></span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="n">r</span><span class="p">;</span>
 <span class="w">     </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">swapfs_read</span><span class="p">((</span><span class="o">*</span><span class="n">ptep</span><span class="p">),</span><span class="w"> </span><span class="n">result</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="c1">//将数据从硬盘读到内存</span>
-<span class="w">     </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">assert</span><span class="p">(</span><span class="n">r</span><span class="o">!=</span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="p">}</span><span class="w"></span>
-<span class="w">     </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;swap_in: load disk swap entry %d with swap_page in vadr 0x%x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="o">*</span><span class="n">ptr_result</span><span class="o">=</span><span class="n">result</span><span class="p">;</span><span class="w"></span>
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">swap_out</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in_tick</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"></span>
-<span class="w">     </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"></span>
-<span class="w">     </span><span class="p">{</span><span class="w"></span>
-<span class="w">          </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">v</span><span class="p">;</span><span class="w"></span>
-<span class="w">          </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">;</span><span class="w"></span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">        </span><span class="n">assert</span><span class="p">(</span><span class="n">r</span><span class="o">!=</span><span class="mi">0</span><span class="p">);</span>
+<span class="w">     </span><span class="p">}</span>
+<span class="w">     </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;swap_in: load disk swap entry %d with swap_page in vadr 0x%x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">ptep</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span>
+<span class="w">     </span><span class="o">*</span><span class="n">ptr_result</span><span class="o">=</span><span class="n">result</span><span class="p">;</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swap_out</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in_tick</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+<span class="w">     </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="w"> </span><span class="n">i</span><span class="p">)</span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">          </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">v</span><span class="p">;</span>
+<span class="w">          </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">;</span>
 <span class="w">          </span><span class="kt">int</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">swap_out_victim</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="n">in_tick</span><span class="p">);</span><span class="c1">//调用页面置换算法的接口</span>
 <span class="w">          </span><span class="c1">//r=0表示成功找到了可以换出去的页面</span>
 <span class="w">         </span><span class="c1">//要换出去的物理页面存在page里</span>
-<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                  </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;i %d, swap_out: call swap_out_victim failed</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">);</span><span class="w"></span>
-<span class="w">                  </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">          </span><span class="p">}</span><span class="w"></span>
+<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                  </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;i %d, swap_out: call swap_out_victim failed</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">);</span>
+<span class="w">                  </span><span class="k">break</span><span class="p">;</span>
+<span class="w">          </span><span class="p">}</span>
 <span class="w">         </span>
-<span class="w">          </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;SWAP: choose victim page 0x%08x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">);</span><span class="w"></span>
+<span class="w">          </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;SWAP: choose victim page 0x%08x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">);</span>
 
 <span class="w">          </span><span class="n">v</span><span class="o">=</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="p">;</span><span class="c1">//可以获取物理页面对应的虚拟地址</span>
-<span class="w">          </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="w">          </span><span class="n">assert</span><span class="p">((</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">          </span><span class="n">pte_t</span><span class="w"> </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_pte</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">          </span><span class="n">assert</span><span class="p">((</span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PTE_V</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 
-<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">swapfs_write</span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="o">/</span><span class="n">PGSIZE</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">swapfs_write</span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="o">/</span><span class="n">PGSIZE</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">              		</span><span class="c1">//尝试把要换出的物理页面写到硬盘上的交换区，返回值不为0说明失败了</span>
-<span class="w">                    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;SWAP: failed to save</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">                    </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">map_swappable</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="w">                    </span><span class="k">continue</span><span class="p">;</span><span class="w"></span>
-<span class="w">          </span><span class="p">}</span><span class="w"></span>
-<span class="w">          </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;SWAP: failed to save</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">                    </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">map_swappable</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">                    </span><span class="k">continue</span><span class="p">;</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">          </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">              </span><span class="c1">//成功换出</span>
-<span class="w">                    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;swap_out: i %d, store page in vaddr 0x%x to disk swap entry %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="o">/</span><span class="n">PGSIZE</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
-<span class="w">                    </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="o">/</span><span class="n">PGSIZE</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">8</span><span class="p">;</span><span class="w"></span>
-<span class="w">                    </span><span class="n">free_page</span><span class="p">(</span><span class="n">page</span><span class="p">);</span><span class="w"></span>
-<span class="w">          </span><span class="p">}</span><span class="w"></span>
+<span class="w">                    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;swap_out: i %d, store page in vaddr 0x%x to disk swap entry %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="o">/</span><span class="n">PGSIZE</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">                    </span><span class="o">*</span><span class="n">ptep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_vaddr</span><span class="o">/</span><span class="n">PGSIZE</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">8</span><span class="p">;</span>
+<span class="w">                    </span><span class="n">free_page</span><span class="p">(</span><span class="n">page</span><span class="p">);</span>
+<span class="w">          </span><span class="p">}</span>
 <span class="w">		  </span><span class="c1">//由于页表改变了，需要刷新TLB</span>
 <span class="w">          </span><span class="c1">//思考： swap_in()的时候插入新的页表项之后在哪里刷新了TLB?</span>
-<span class="w">          </span><span class="n">tlb_invalidate</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="p">}</span><span class="w"></span>
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">          </span><span class="n">tlb_invalidate</span><span class="p">(</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">pgdir</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">);</span>
+<span class="w">     </span><span class="p">}</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">kern/mm/swap.c</span></code>里其他的接口基本都是简单调用<code class="docutils literal notranslate"><span class="pre">swap_manager</span></code>的具体实现。值得一提的是<code class="docutils literal notranslate"><span class="pre">swap_init()</span></code>初始化里做的工作。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/mm/swap.c</span>
-<span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span><span class="w"> </span><span class="o">*</span><span class="n">sm</span><span class="p">;</span><span class="w"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">swap_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="n">swapfs_init</span><span class="p">();</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span><span class="w"> </span><span class="o">*</span><span class="n">sm</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swap_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="n">swapfs_init</span><span class="p">();</span>
 
 <span class="w">     </span><span class="c1">// Since the IDE is faked, it can only store 7 pages at most to pass the test</span>
-<span class="w">     </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="mi">7</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"></span>
-<span class="w">        </span><span class="n">max_swap_offset</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_SWAP_OFFSET_LIMIT</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;bad max_swap_offset %08x.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="p">}</span><span class="w"></span>
+<span class="w">     </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="mi">7</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">        </span><span class="n">max_swap_offset</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_SWAP_OFFSET_LIMIT</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;bad max_swap_offset %08x.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">max_swap_offset</span><span class="p">);</span>
+<span class="w">     </span><span class="p">}</span>
 
 <span class="w">     </span><span class="n">sm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">swap_manager_fifo</span><span class="p">;</span><span class="c1">//use first in first out Page Replacement Algorithm</span>
-<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">init</span><span class="p">();</span><span class="w"></span>
+<span class="w">     </span><span class="kt">int</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">init</span><span class="p">();</span>
 
-<span class="w">     </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"></span>
-<span class="w">     </span><span class="p">{</span><span class="w"></span>
-<span class="w">          </span><span class="n">swap_init_ok</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
-<span class="w">          </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;SWAP: manager = %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
-<span class="w">          </span><span class="n">check_swap</span><span class="p">();</span><span class="w"></span>
-<span class="w">     </span><span class="p">}</span><span class="w"></span>
+<span class="w">     </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">          </span><span class="n">swap_init_ok</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">          </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;SWAP: manager = %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+<span class="w">          </span><span class="n">check_swap</span><span class="p">();</span>
+<span class="w">     </span><span class="p">}</span>
 
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">r</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">r</span><span class="p">;</span>
+<span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">swap_init_mm</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">init_mm</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swap_init_mm</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">init_mm</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span>
+<span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">swap_tick_event</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">tick_event</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swap_tick_event</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">tick_event</span><span class="p">(</span><span class="n">mm</span><span class="p">);</span>
+<span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">swap_map_swappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">swap_in</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">map_swappable</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="n">swap_in</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swap_map_swappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">swap_in</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">map_swappable</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="n">swap_in</span><span class="p">);</span>
+<span class="p">}</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">swap_set_unswappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">set_unswappable</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">swap_set_unswappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="n">sm</span><span class="o">-&gt;</span><span class="n">set_unswappable</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">addr</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">kern/mm/swap_fifo.h</span></code>完成了FIFO置换算法最终的具体实现。我们所做的就是维护了一个队列（用链表实现）。</p>
@@ -273,8 +274,8 @@
 <span class="cp">#ifndef __KERN_MM_SWAP_FIFO_H__</span>
 <span class="cp">#define __KERN_MM_SWAP_FIFO_H__</span>
 
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;swap.h&gt;</span><span class="cp"></span>
-<span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span><span class="w"> </span><span class="n">swap_manager_fifo</span><span class="p">;</span><span class="w"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;swap.h&gt;</span>
+<span class="k">extern</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span><span class="w"> </span><span class="n">swap_manager_fifo</span><span class="p">;</span>
 
 <span class="cp">#endif</span>
 <span class="c1">// kern/mm/swap_fifo.c</span>
@@ -286,82 +287,82 @@
 <span class="cm"> * list_add_before, list_del, list_next, list_prev. Another tricky method is to transform</span>
 <span class="cm"> *  a general list struct to a special struct (such as struct page). You can find some MACRO:</span>
 <span class="cm"> * le2page (in memlayout.h), (in future labs: le2vma (in vmm.h), le2proc (in proc.h),etc.</span>
-<span class="cm"> */</span><span class="w"></span>
+<span class="cm"> */</span>
 
-<span class="n">list_entry_t</span><span class="w"> </span><span class="n">pra_list_head</span><span class="p">;</span><span class="w"></span>
+<span class="n">list_entry_t</span><span class="w"> </span><span class="n">pra_list_head</span><span class="p">;</span>
 <span class="cm">/*</span>
 <span class="cm"> * (2) _fifo_init_mm: init pra_list_head and let  mm-&gt;sm_priv point to the addr of pra_list_head.</span>
 <span class="cm"> *     Now, From the memory control struct mm_struct, we can access FIFO PRA</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"></span>
-<span class="nf">_fifo_init_mm</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="n">list_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pra_list_head</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">sm_priv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pra_list_head</span><span class="p">;</span><span class="w"></span>
-<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span>
+<span class="nf">_fifo_init_mm</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="n">list_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pra_list_head</span><span class="p">);</span>
+<span class="w">     </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">sm_priv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pra_list_head</span><span class="p">;</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 <span class="cm">/*</span>
 <span class="cm"> * (3)_fifo_map_swappable: According FIFO PRA, we should link the most recent arrival page at the back of pra_list_head qeueue</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"></span>
-<span class="nf">_fifo_map_swappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">swap_in</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">head</span><span class="o">=</span><span class="p">(</span><span class="n">list_entry_t</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">sm_priv</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">entry</span><span class="o">=&amp;</span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_page_link</span><span class="p">);</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span>
+<span class="nf">_fifo_map_swappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">*</span><span class="n">page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">swap_in</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">head</span><span class="o">=</span><span class="p">(</span><span class="n">list_entry_t</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">sm_priv</span><span class="p">;</span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">entry</span><span class="o">=&amp;</span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">pra_page_link</span><span class="p">);</span>
 
-<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">entry</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">head</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">entry</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">head</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">//record the page access situlation</span>
 <span class="w">    </span><span class="c1">//(1)link the most recent arrival page at the back of the pra_list_head qeueue.</span>
-<span class="w">    </span><span class="n">list_add</span><span class="p">(</span><span class="n">head</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_add</span><span class="p">(</span><span class="n">head</span><span class="p">,</span><span class="w"> </span><span class="n">entry</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 <span class="cm">/*</span>
 <span class="cm"> *  (4)_fifo_swap_out_victim: According FIFO PRA, we should unlink the  earliest arrival page in front of pra_list_head qeueue,</span>
 <span class="cm"> *    then set the addr of addr of this page to ptr_page.</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"></span>
-<span class="nf">_fifo_swap_out_victim</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">ptr_page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in_tick</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">head</span><span class="o">=</span><span class="p">(</span><span class="n">list_entry_t</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">sm_priv</span><span class="p">;</span><span class="w"></span>
-<span class="w">         </span><span class="n">assert</span><span class="p">(</span><span class="n">head</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="n">assert</span><span class="p">(</span><span class="n">in_tick</span><span class="o">==</span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
-<span class="w">     </span><span class="cm">/* Select the victim */</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span>
+<span class="nf">_fifo_swap_out_victim</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">Page</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">ptr_page</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in_tick</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="n">list_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">head</span><span class="o">=</span><span class="p">(</span><span class="n">list_entry_t</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">sm_priv</span><span class="p">;</span>
+<span class="w">         </span><span class="n">assert</span><span class="p">(</span><span class="n">head</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">     </span><span class="n">assert</span><span class="p">(</span><span class="n">in_tick</span><span class="o">==</span><span class="mi">0</span><span class="p">);</span>
+<span class="w">     </span><span class="cm">/* Select the victim */</span>
 <span class="w">     </span><span class="c1">//(1)  unlink the  earliest arrival page in front of pra_list_head qeueue</span>
 <span class="w">     </span><span class="c1">//(2)  set the addr of addr of this page to ptr_page</span>
-<span class="w">    </span><span class="n">list_entry_t</span><span class="o">*</span><span class="w"> </span><span class="n">entry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list_prev</span><span class="p">(</span><span class="n">head</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">entry</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">head</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">list_del</span><span class="p">(</span><span class="n">entry</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="o">*</span><span class="n">ptr_page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">le2page</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="n">pra_page_link</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="o">*</span><span class="n">ptr_page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="o">*</span><span class="w"> </span><span class="n">entry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list_prev</span><span class="p">(</span><span class="n">head</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">entry</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">head</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">list_del</span><span class="p">(</span><span class="n">entry</span><span class="p">);</span>
+<span class="w">        </span><span class="o">*</span><span class="n">ptr_page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">le2page</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span><span class="w"> </span><span class="n">pra_page_link</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="o">*</span><span class="n">ptr_page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 <span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">_fifo_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="c1">//初始化的时候什么都不做</span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">_fifo_set_unswappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">_fifo_set_unswappable</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">addr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 
 <span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">_fifo_tick_event</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mm_struct</span><span class="w"> </span><span class="o">*</span><span class="n">mm</span><span class="p">)</span><span class="c1">//时钟中断的时候什么都不做</span>
-<span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
 
 
-<span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span><span class="w"> </span><span class="n">swap_manager_fifo</span><span class="w"> </span><span class="o">=</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">name</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;fifo swap manager&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">init</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_init</span><span class="p">,</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">init_mm</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_init_mm</span><span class="p">,</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">tick_event</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_tick_event</span><span class="p">,</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">map_swappable</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_map_swappable</span><span class="p">,</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">set_unswappable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_set_unswappable</span><span class="p">,</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">swap_out_victim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_swap_out_victim</span><span class="p">,</span><span class="w"></span>
-<span class="w">     </span><span class="p">.</span><span class="n">check_swap</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_check_swap</span><span class="p">,</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">swap_manager</span><span class="w"> </span><span class="n">swap_manager_fifo</span><span class="w"> </span><span class="o">=</span>
+<span class="p">{</span>
+<span class="w">     </span><span class="p">.</span><span class="n">name</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;fifo swap manager&quot;</span><span class="p">,</span>
+<span class="w">     </span><span class="p">.</span><span class="n">init</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_init</span><span class="p">,</span>
+<span class="w">     </span><span class="p">.</span><span class="n">init_mm</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_init_mm</span><span class="p">,</span>
+<span class="w">     </span><span class="p">.</span><span class="n">tick_event</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_tick_event</span><span class="p">,</span>
+<span class="w">     </span><span class="p">.</span><span class="n">map_swappable</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_map_swappable</span><span class="p">,</span>
+<span class="w">     </span><span class="p">.</span><span class="n">set_unswappable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_set_unswappable</span><span class="p">,</span>
+<span class="w">     </span><span class="p">.</span><span class="n">swap_out_victim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_swap_out_victim</span><span class="p">,</span>
+<span class="w">     </span><span class="p">.</span><span class="n">check_swap</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">_fifo_check_swap</span><span class="p">,</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>我们通过<code class="docutils literal notranslate"><span class="pre">_fifo_check_swap()</span></code>, <code class="docutils literal notranslate"><span class="pre">check_swap()</span></code>, <code class="docutils literal notranslate"><span class="pre">check_vma_struct()</span></code>, <code class="docutils literal notranslate"><span class="pre">check_pgfault()</span></code>等接口对页面置换机制进行了简单的测试。具体测试的细节在这里不进行展示，同学们可以尝试自己进行测试。

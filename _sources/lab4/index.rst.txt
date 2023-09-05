@@ -11,7 +11,7 @@ lab4:进程管理
 .. toctree::
    :maxdepth: 6
 
-   lab4/lab4_1_goals
+   lab4-1/lab4_1_goals
    lab4-2/index
    lab4-3/index
    lab4-4/lab4_4_labs_requirement

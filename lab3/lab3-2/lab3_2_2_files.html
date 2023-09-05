@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>项目组成 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -97,7 +98,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>项目组成<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>项目组成<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>表1：实验三文件列表</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── Makefile
 ├── kern
@@ -172,69 +173,70 @@
     ├── kernel.ld
     ├── sign.c
     └── vector.c
+
 </pre></div>
 </div>
 <p><strong>编译方法</strong></p>
 <p>编译并运行代码的命令如下：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make
 
-make qemu
+make<span class="w"> </span>qemu
 </pre></div>
 </div>
 <p>则可以得到如下显示界面（仅供参考）</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>chenyu$ make qemu
-<span class="o">(</span>THU.CST<span class="o">)</span> os is loading ...
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>chenyu$<span class="w"> </span>make<span class="w"> </span>qemu
+<span class="o">(</span>THU.CST<span class="o">)</span><span class="w"> </span>os<span class="w"> </span>is<span class="w"> </span>loading<span class="w"> </span>...
 
-Special kernel symbols:
-  entry  0xc0200036 <span class="o">(</span>virtual<span class="o">)</span>
-  etext  0xc02042cc <span class="o">(</span>virtual<span class="o">)</span>
-  edata  0xc020a040 <span class="o">(</span>virtual<span class="o">)</span>
-  end    0xc02115a0 <span class="o">(</span>virtual<span class="o">)</span>
-Kernel executable memory footprint: 70KB
-memory management: default_pmm_manager
-membegin <span class="m">80200000</span> memend <span class="m">88000000</span> mem_size 7e00000
-physcial memory map:
-  memory: 0x07e00000, <span class="o">[</span>0x80200000, 0x87ffffff<span class="o">]</span>.
-check_alloc_page<span class="o">()</span> succeeded!
-check_pgdir<span class="o">()</span> succeeded!
-check_boot_pgdir<span class="o">()</span> succeeded!
-check_vma_struct<span class="o">()</span> succeeded!
-Store/AMO page fault
-page fault at 0x00000100: K/W
-check_pgfault<span class="o">()</span> succeeded!
-check_vmm<span class="o">()</span> succeeded.
-SWAP: <span class="nv">manager</span> <span class="o">=</span> clock swap manager
-BEGIN check_swap: count <span class="m">2</span>, total <span class="m">31661</span>
-setup Page Table <span class="k">for</span> vaddr 0X1000, so alloc a page
-setup Page Table vaddr <span class="m">0</span>~4MB OVER!
-<span class="nb">set</span> up init env <span class="k">for</span> check_swap begin!
-Store/AMO page fault
-page fault at 0x00001000: K/W
-Store/AMO page fault
-page fault at 0x00002000: K/W
-Store/AMO page fault
-page fault at 0x00003000: K/W
-Store/AMO page fault
-page fault at 0x00004000: K/W
-<span class="nb">set</span> up init env <span class="k">for</span> check_swap over!
-Store/AMO page fault
-page fault at 0x00005000: K/W
-curr_ptr 0xffffffffc02258a8
-curr_ptr 0xffffffffc02258a8
-swap_out: i <span class="m">0</span>, store page <span class="k">in</span> vaddr 0x1000 to disk swap entry <span class="m">2</span>
-Load page fault
-page fault at 0x00001000: K/R
-curr_ptr 0xffffffffc02258f0
-curr_ptr 0xffffffffc02258f0
-swap_out: i <span class="m">0</span>, store page <span class="k">in</span> vaddr 0x2000 to disk swap entry <span class="m">3</span>
-swap_in: load disk swap entry <span class="m">2</span> with swap_page <span class="k">in</span> vadr 0x1000
-count is <span class="m">1</span>, total is <span class="m">8</span>
-check_swap<span class="o">()</span> succeeded!
-++ setup timer interrupts
-<span class="m">100</span> ticks
-<span class="m">100</span> ticks
-<span class="m">100</span> ticks
-<span class="m">100</span> ticks
+Special<span class="w"> </span>kernel<span class="w"> </span>symbols:
+<span class="w">  </span>entry<span class="w">  </span>0xc0200036<span class="w"> </span><span class="o">(</span>virtual<span class="o">)</span>
+<span class="w">  </span>etext<span class="w">  </span>0xc02042cc<span class="w"> </span><span class="o">(</span>virtual<span class="o">)</span>
+<span class="w">  </span>edata<span class="w">  </span>0xc020a040<span class="w"> </span><span class="o">(</span>virtual<span class="o">)</span>
+<span class="w">  </span>end<span class="w">    </span>0xc02115a0<span class="w"> </span><span class="o">(</span>virtual<span class="o">)</span>
+Kernel<span class="w"> </span>executable<span class="w"> </span>memory<span class="w"> </span>footprint:<span class="w"> </span>70KB
+memory<span class="w"> </span>management:<span class="w"> </span>default_pmm_manager
+membegin<span class="w"> </span><span class="m">80200000</span><span class="w"> </span>memend<span class="w"> </span><span class="m">88000000</span><span class="w"> </span>mem_size<span class="w"> </span>7e00000
+physcial<span class="w"> </span>memory<span class="w"> </span>map:
+<span class="w">  </span>memory:<span class="w"> </span>0x07e00000,<span class="w"> </span><span class="o">[</span>0x80200000,<span class="w"> </span>0x87ffffff<span class="o">]</span>.
+check_alloc_page<span class="o">()</span><span class="w"> </span>succeeded!
+check_pgdir<span class="o">()</span><span class="w"> </span>succeeded!
+check_boot_pgdir<span class="o">()</span><span class="w"> </span>succeeded!
+check_vma_struct<span class="o">()</span><span class="w"> </span>succeeded!
+Store/AMO<span class="w"> </span>page<span class="w"> </span>fault
+page<span class="w"> </span>fault<span class="w"> </span>at<span class="w"> </span>0x00000100:<span class="w"> </span>K/W
+check_pgfault<span class="o">()</span><span class="w"> </span>succeeded!
+check_vmm<span class="o">()</span><span class="w"> </span>succeeded.
+SWAP:<span class="w"> </span><span class="nv">manager</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>clock<span class="w"> </span>swap<span class="w"> </span>manager
+BEGIN<span class="w"> </span>check_swap:<span class="w"> </span>count<span class="w"> </span><span class="m">2</span>,<span class="w"> </span>total<span class="w"> </span><span class="m">31661</span>
+setup<span class="w"> </span>Page<span class="w"> </span>Table<span class="w"> </span><span class="k">for</span><span class="w"> </span>vaddr<span class="w"> </span>0X1000,<span class="w"> </span>so<span class="w"> </span>alloc<span class="w"> </span>a<span class="w"> </span>page
+setup<span class="w"> </span>Page<span class="w"> </span>Table<span class="w"> </span>vaddr<span class="w"> </span><span class="m">0</span>~4MB<span class="w"> </span>OVER!
+<span class="nb">set</span><span class="w"> </span>up<span class="w"> </span>init<span class="w"> </span>env<span class="w"> </span><span class="k">for</span><span class="w"> </span>check_swap<span class="w"> </span>begin!
+Store/AMO<span class="w"> </span>page<span class="w"> </span>fault
+page<span class="w"> </span>fault<span class="w"> </span>at<span class="w"> </span>0x00001000:<span class="w"> </span>K/W
+Store/AMO<span class="w"> </span>page<span class="w"> </span>fault
+page<span class="w"> </span>fault<span class="w"> </span>at<span class="w"> </span>0x00002000:<span class="w"> </span>K/W
+Store/AMO<span class="w"> </span>page<span class="w"> </span>fault
+page<span class="w"> </span>fault<span class="w"> </span>at<span class="w"> </span>0x00003000:<span class="w"> </span>K/W
+Store/AMO<span class="w"> </span>page<span class="w"> </span>fault
+page<span class="w"> </span>fault<span class="w"> </span>at<span class="w"> </span>0x00004000:<span class="w"> </span>K/W
+<span class="nb">set</span><span class="w"> </span>up<span class="w"> </span>init<span class="w"> </span>env<span class="w"> </span><span class="k">for</span><span class="w"> </span>check_swap<span class="w"> </span>over!
+Store/AMO<span class="w"> </span>page<span class="w"> </span>fault
+page<span class="w"> </span>fault<span class="w"> </span>at<span class="w"> </span>0x00005000:<span class="w"> </span>K/W
+curr_ptr<span class="w"> </span>0xffffffffc02258a8
+curr_ptr<span class="w"> </span>0xffffffffc02258a8
+swap_out:<span class="w"> </span>i<span class="w"> </span><span class="m">0</span>,<span class="w"> </span>store<span class="w"> </span>page<span class="w"> </span><span class="k">in</span><span class="w"> </span>vaddr<span class="w"> </span>0x1000<span class="w"> </span>to<span class="w"> </span>disk<span class="w"> </span>swap<span class="w"> </span>entry<span class="w"> </span><span class="m">2</span>
+Load<span class="w"> </span>page<span class="w"> </span>fault
+page<span class="w"> </span>fault<span class="w"> </span>at<span class="w"> </span>0x00001000:<span class="w"> </span>K/R
+curr_ptr<span class="w"> </span>0xffffffffc02258f0
+curr_ptr<span class="w"> </span>0xffffffffc02258f0
+swap_out:<span class="w"> </span>i<span class="w"> </span><span class="m">0</span>,<span class="w"> </span>store<span class="w"> </span>page<span class="w"> </span><span class="k">in</span><span class="w"> </span>vaddr<span class="w"> </span>0x2000<span class="w"> </span>to<span class="w"> </span>disk<span class="w"> </span>swap<span class="w"> </span>entry<span class="w"> </span><span class="m">3</span>
+swap_in:<span class="w"> </span>load<span class="w"> </span>disk<span class="w"> </span>swap<span class="w"> </span>entry<span class="w"> </span><span class="m">2</span><span class="w"> </span>with<span class="w"> </span>swap_page<span class="w"> </span><span class="k">in</span><span class="w"> </span>vadr<span class="w"> </span>0x1000
+count<span class="w"> </span>is<span class="w"> </span><span class="m">1</span>,<span class="w"> </span>total<span class="w"> </span>is<span class="w"> </span><span class="m">8</span>
+check_swap<span class="o">()</span><span class="w"> </span>succeeded!
+++<span class="w"> </span>setup<span class="w"> </span>timer<span class="w"> </span>interrupts
+<span class="m">100</span><span class="w"> </span>ticks
+<span class="m">100</span><span class="w"> </span>ticks
+<span class="m">100</span><span class="w"> </span>ticks
+<span class="m">100</span><span class="w"> </span>ticks
 ……
 </pre></div>
 </div>

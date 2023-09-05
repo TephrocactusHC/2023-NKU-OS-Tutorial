@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>中断处理程序 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,20 +97,20 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>中断处理程序<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>中断处理程序<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>中断处理需要初始化，所以我们在<code class="docutils literal notranslate"><span class="pre">init.c</span></code>里调用一些初始化的函数</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/init/init.c</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;trap.h&gt;</span><span class="cp"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">kern_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">edata</span><span class="p">[],</span><span class="w"> </span><span class="n">end</span><span class="p">[];</span><span class="w"></span>
-<span class="w">    </span><span class="n">memset</span><span class="p">(</span><span class="n">edata</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">edata</span><span class="p">);</span><span class="w"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;trap.h&gt;</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">kern_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">edata</span><span class="p">[],</span><span class="w"> </span><span class="n">end</span><span class="p">[];</span>
+<span class="w">    </span><span class="n">memset</span><span class="p">(</span><span class="n">edata</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">edata</span><span class="p">);</span>
 
 <span class="w">    </span><span class="n">cons_init</span><span class="p">();</span><span class="w">  </span><span class="c1">// init the console</span>
 
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;(THU.CST) os is loading ...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">message</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;(THU.CST) os is loading ...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">message</span><span class="p">);</span>
 
-<span class="w">    </span><span class="n">print_kerninfo</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="n">print_kerninfo</span><span class="p">();</span>
 
 <span class="w">    </span><span class="c1">// grade_backtrace();</span>
 <span class="w">	</span>
@@ -120,153 +121,155 @@
 <span class="w">    </span><span class="n">clock_init</span><span class="p">();</span><span class="w">  </span>
 <span class="w">	</span><span class="c1">//intr.h的函数，使能中断</span>
 <span class="w">    </span><span class="n">intr_enable</span><span class="p">();</span><span class="w">  </span>
-<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"></span>
-<span class="w">        </span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="p">;</span>
+<span class="p">}</span>
 <span class="c1">// kern/trap/trap.c</span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">idt_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">__alltraps</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">idt_init</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">__alltraps</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">//约定：若中断前处于S态，sscratch为0</span>
 <span class="w">    </span><span class="c1">//若中断前处于U态，sscratch存储内核栈地址</span>
 <span class="w">    </span><span class="c1">//那么之后就可以通过sscratch的数值判断是内核态产生的中断还是用户态产生的中断</span>
 <span class="w">    </span><span class="c1">//我们现在是内核态所以给sscratch置零</span>
-<span class="w">    </span><span class="n">write_csr</span><span class="p">(</span><span class="n">sscratch</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">write_csr</span><span class="p">(</span><span class="n">sscratch</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">//我们保证__alltraps的地址是四字节对齐的，将__alltraps这个符号的地址直接写到stvec寄存器</span>
-<span class="w">    </span><span class="n">write_csr</span><span class="p">(</span><span class="n">stvec</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">__alltraps</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">write_csr</span><span class="p">(</span><span class="n">stvec</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">__alltraps</span><span class="p">);</span>
+<span class="p">}</span>
 <span class="c1">//kern/driver/intr.c</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;intr.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;riscv.h&gt;</span><span class="cp"></span>
-<span class="cm">/* intr_enable - enable irq interrupt, 设置sstatus的Supervisor中断使能位 */</span><span class="w"></span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">intr_enable</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">set_csr</span><span class="p">(</span><span class="n">sstatus</span><span class="p">,</span><span class="w"> </span><span class="n">SSTATUS_SIE</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
-<span class="cm">/* intr_disable - disable irq interrupt */</span><span class="w"></span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">intr_disable</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">clear_csr</span><span class="p">(</span><span class="n">sstatus</span><span class="p">,</span><span class="w"> </span><span class="n">SSTATUS_SIE</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;intr.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;riscv.h&gt;</span>
+<span class="cm">/* intr_enable - enable irq interrupt, 设置sstatus的Supervisor中断使能位 */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">intr_enable</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">set_csr</span><span class="p">(</span><span class="n">sstatus</span><span class="p">,</span><span class="w"> </span><span class="n">SSTATUS_SIE</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="cm">/* intr_disable - disable irq interrupt */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">intr_disable</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">clear_csr</span><span class="p">(</span><span class="n">sstatus</span><span class="p">,</span><span class="w"> </span><span class="n">SSTATUS_SIE</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
 </pre></div>
 </div>
 <p>trap.c的中断处理函数trap, 实际上把中断处理,异常处理的工作分发给了interrupt_handler()，exception_handler(), 这些函数再根据中断或异常的不同类型来处理。</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/trap/trap.c</span>
-<span class="cm">/* trap_dispatch - dispatch based on what type of trap occurred */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">trap_dispatch</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="cm">/* trap_dispatch - dispatch based on what type of trap occurred */</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">trap_dispatch</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">//scause的最高位是1，说明trap是由中断引起的</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="kt">intptr_t</span><span class="p">)</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="kt">intptr_t</span><span class="p">)</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// interrupts</span>
-<span class="w">        </span><span class="n">interrupt_handler</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">interrupt_handler</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// exceptions</span>
-<span class="w">        </span><span class="n">exception_handler</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">exception_handler</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 
 <span class="cm">/* *</span>
 <span class="cm"> * trap - handles or dispatches an exception/interrupt. if and when trap()</span>
 <span class="cm"> * returns,</span>
 <span class="cm"> * the code in kern/trap/trapentry.S restores the old CPU state saved in the</span>
 <span class="cm"> * trapframe and then uses the iret instruction to return from the exception.</span>
-<span class="cm"> * */</span><span class="w"></span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">trap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">trap_dispatch</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="cm"> * */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">trap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">trap_dispatch</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+
 </pre></div>
 </div>
 <p>我们可以看到，interrupt_handler()和exception_handler()的实现还比较简单，只是简单地根据<code class="docutils literal notranslate"><span class="pre">scause</span></code>的数值更仔细地分了下类，做了一些输出就直接返回了。switch里的各种case, 如<code class="docutils literal notranslate"><span class="pre">IRQ_U_SOFT</span></code>,<code class="docutils literal notranslate"><span class="pre">CAUSE_USER_ECALL</span></code>,是riscv ISA 标准里规定的。我们在<code class="docutils literal notranslate"><span class="pre">riscv.h</span></code>里定义了这些常量。我们接下来主要关注时钟中断的处理。</p>
 <p>在这里我们对时钟中断进行了一个简单的处理，即每次触发时钟中断的时候，我们会给一个计数器加一，并且设定好下一次时钟中断。当计数器加到100的时候，我们会输出一个<code class="docutils literal notranslate"><span class="pre">100ticks</span></code>表示我们触发了100次时钟中断。通过在模拟器中观察输出我们即刻看到是否正确触发了时钟中断，从而验证我们实现的异常处理机制。</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">interrupt_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">interrupt_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kt">intptr_t</span><span class="w"> </span><span class="n">cause</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="c1">//抹掉scause最高位代表“这是中断不是异常”的1</span>
-<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_U_SOFT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;User software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_S_SOFT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Supervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_H_SOFT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Hypervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_M_SOFT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Machine software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_U_TIMER</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;User software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_S_TIMER</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_U_SOFT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;User software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_S_SOFT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Supervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_H_SOFT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Hypervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_M_SOFT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Machine software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_U_TIMER</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;User software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_S_TIMER</span><span class="p">:</span>
 <span class="w">            </span><span class="c1">//时钟中断</span>
-<span class="w">            </span><span class="cm">/* LAB1 EXERCISE2   YOUR CODE :  */</span><span class="w"></span>
+<span class="w">            </span><span class="cm">/* LAB1 EXERCISE2   YOUR CODE :  */</span>
 <span class="w">            </span><span class="cm">/*(1)设置下次时钟中断</span>
 <span class="cm">             *(2)计数器（ticks）加一</span>
 <span class="cm">             *(3)当计数器加到100的时候，我们会输出一个`100ticks`表示我们触发了100次时钟中断，同时打印次数（num）加一</span>
 <span class="cm">            * (4)判断打印次数，当打印次数为10时，调用&lt;sbi.h&gt;中的关机函数关机</span>
-<span class="cm">            */</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_H_TIMER</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Hypervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_M_TIMER</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Machine software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_U_EXT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;User software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_S_EXT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Supervisor external interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_H_EXT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Hypervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">IRQ_M_EXT</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Machine software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">default</span><span class="o">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm">            */</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_H_TIMER</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Hypervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_M_TIMER</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Machine software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_U_EXT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;User software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_S_EXT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Supervisor external interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_H_EXT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Hypervisor software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">IRQ_M_EXT</span><span class="p">:</span>
+<span class="w">            </span><span class="n">cprintf</span><span class="p">(</span><span class="s">&quot;Machine software interrupt</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">default</span><span class="o">:</span>
+<span class="w">            </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">exception_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_MISALIGNED_FETCH</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_FAULT_FETCH</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_ILLEGAL_INSTRUCTION</span><span class="p">:</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">exception_handler</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">tf</span><span class="o">-&gt;</span><span class="n">cause</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_MISALIGNED_FETCH</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_FAULT_FETCH</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_ILLEGAL_INSTRUCTION</span><span class="p">:</span>
 <span class="w">            </span><span class="c1">//非法指令异常处理</span>
-<span class="w">            </span><span class="cm">/* LAB1 CHALLENGE3   YOUR CODE :  */</span><span class="w"></span>
+<span class="w">            </span><span class="cm">/* LAB1 CHALLENGE3   YOUR CODE :  */</span>
 <span class="w">            </span><span class="cm">/*(1)输出指令异常类型（ Illegal instruction）</span>
 <span class="cm">             *(2)输出异常指令地址</span>
 <span class="cm">             *(3)更新 tf-&gt;epc寄存器</span>
-<span class="cm">             */</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_BREAKPOINT</span><span class="p">:</span><span class="w"></span>
+<span class="cm">             */</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_BREAKPOINT</span><span class="p">:</span>
 <span class="w">            </span><span class="c1">//非法指令异常处理</span>
-<span class="w">            </span><span class="cm">/* LAB1 CHALLLENGE3   YOUR CODE :  */</span><span class="w"></span>
+<span class="w">            </span><span class="cm">/* LAB1 CHALLLENGE3   YOUR CODE :  */</span>
 <span class="w">            </span><span class="cm">/*(1)输出指令异常类型（ breakpoint）</span>
 <span class="cm">             *(2)输出异常指令地址</span>
 <span class="cm">             *(3)更新 tf-&gt;epc寄存器</span>
-<span class="cm">             */</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_MISALIGNED_LOAD</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_FAULT_LOAD</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_MISALIGNED_STORE</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_FAULT_STORE</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_USER_ECALL</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_SUPERVISOR_ECALL</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_HYPERVISOR_ECALL</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="nl">CAUSE_MACHINE_ECALL</span><span class="p">:</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">default</span><span class="o">:</span><span class="w"></span>
-<span class="w">            </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
-<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm">             */</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_MISALIGNED_LOAD</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_FAULT_LOAD</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_MISALIGNED_STORE</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_FAULT_STORE</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_USER_ECALL</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_SUPERVISOR_ECALL</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_HYPERVISOR_ECALL</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">CAUSE_MACHINE_ECALL</span><span class="p">:</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="k">default</span><span class="o">:</span>
+<span class="w">            </span><span class="n">print_trapframe</span><span class="p">(</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
 </pre></div>
 </div>
 <p>下面是RISCV标准里<code class="docutils literal notranslate"><span class="pre">scause</span></code>的部分，可以看到有个scause的数值与中断/异常原因的对应表格。</p>
-<p><img alt="../../_images/scause1.jpg" src="../../_images/scause1.jpg" /></p>
-<p><img alt="../../_images/scause2.jpg" src="../../_images/scause2.jpg" /></p>
+<p><img alt="" src="../../_images/scause1.jpg" /></p>
+<p><img alt="" src="../../_images/scause2.jpg" /></p>
 <p>下一节我们将仔细讨论如何设置好时钟模块。</p>
 </section>
 

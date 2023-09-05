@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>掉进兔子洞(中断入口点) &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>掉进兔子洞(中断入口点)<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>掉进兔子洞(中断入口点)<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>我们已经知道,在发生中断的时候, CPU会跳到<code class="docutils literal notranslate"><span class="pre">stvec</span></code>.我们准备采用<code class="docutils literal notranslate"><span class="pre">Direct</span></code>模式,也就是只有一个中断处理程序, <code class="docutils literal notranslate"><span class="pre">stvec</span></code>直接跳到中断处理程序的入口点,那么需要我们对<code class="docutils literal notranslate"><span class="pre">stvec</span></code>寄存器做初始化.</p>
 <p>中断的处理需要“放下当前的事情但之后还能回来接着之前往下做”，对于CPU来说，实际上只需要把原先的寄存器保存下来，做完其他事情把寄存器恢复回来就可以了。这些寄存器也被叫做CPU的<strong>context(上下文，情境)</strong>。我们要用汇编实现上下文切换(context switch)机制，这包含两步：</p>
 <ul class="simple">
@@ -110,29 +111,90 @@
 <p>The RISC-V Instruction Set Manual Volume I: Unprivileged ISA
 Document Version 20191213</p>
 <p>Chapter 25 RISC-V Assembly Programmer’s Handbook</p>
-<p>| Register | ABI Name | Description                       | Saver  |
-| ——– | ——– | ——————————— | —— |
-| x0       | zero     | Hard-wired zero                   | —      |
-| x1       | ra       | Return address                    | Caller |
-| x2       | sp       | Stack pointer                     | Callee |
-| x3       | gp       | Global pointer                    | —      |
-| x4       | tp       | Thread pointer                    | —      |
-| x5       | t0       | Temporary/alternate link register | Caller |
-| x6–7     | t1–2     | Temporaries                       | Caller |
-| x8       | s0/fp    | Saved register/frame pointer      | Callee |
-| x9       | s1       | Saved register                    | Callee |
-| x10–11   | a0–1     | Function arguments/return values  | Caller |
-| x12–17   | a2–7     | Function arguments                | Caller |
-| x18–27   | s2–11    | Saved registers                   | Callee |
-| x28–31   | t3–6     | Temporaries                       | Caller |</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Register</p></th>
+<th class="head"><p>ABI Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Saver</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>x0</p></td>
+<td><p>zero</p></td>
+<td><p>Hard-wired zero</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>x1</p></td>
+<td><p>ra</p></td>
+<td><p>Return address</p></td>
+<td><p>Caller</p></td>
+</tr>
+<tr class="row-even"><td><p>x2</p></td>
+<td><p>sp</p></td>
+<td><p>Stack pointer</p></td>
+<td><p>Callee</p></td>
+</tr>
+<tr class="row-odd"><td><p>x3</p></td>
+<td><p>gp</p></td>
+<td><p>Global pointer</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p>x4</p></td>
+<td><p>tp</p></td>
+<td><p>Thread pointer</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>x5</p></td>
+<td><p>t0</p></td>
+<td><p>Temporary/alternate link register</p></td>
+<td><p>Caller</p></td>
+</tr>
+<tr class="row-even"><td><p>x6–7</p></td>
+<td><p>t1–2</p></td>
+<td><p>Temporaries</p></td>
+<td><p>Caller</p></td>
+</tr>
+<tr class="row-odd"><td><p>x8</p></td>
+<td><p>s0/fp</p></td>
+<td><p>Saved register/frame pointer</p></td>
+<td><p>Callee</p></td>
+</tr>
+<tr class="row-even"><td><p>x9</p></td>
+<td><p>s1</p></td>
+<td><p>Saved register</p></td>
+<td><p>Callee</p></td>
+</tr>
+<tr class="row-odd"><td><p>x10–11</p></td>
+<td><p>a0–1</p></td>
+<td><p>Function arguments/return values</p></td>
+<td><p>Caller</p></td>
+</tr>
+<tr class="row-even"><td><p>x12–17</p></td>
+<td><p>a2–7</p></td>
+<td><p>Function arguments</p></td>
+<td><p>Caller</p></td>
+</tr>
+<tr class="row-odd"><td><p>x18–27</p></td>
+<td><p>s2–11</p></td>
+<td><p>Saved registers</p></td>
+<td><p>Callee</p></td>
+</tr>
+<tr class="row-even"><td><p>x28–31</p></td>
+<td><p>t3–6</p></td>
+<td><p>Temporaries</p></td>
+<td><p>Caller</p></td>
+</tr>
+</tbody>
+</table>
 </div></blockquote>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/trap/trap.h</span>
 <span class="cp">#ifndef __KERN_TRAP_TRAP_H__</span>
 <span class="cp">#define __KERN_TRAP_TRAP_H__</span>
 
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;defs.h&gt;</span>
 
-<span class="k">struct</span><span class="w"> </span><span class="nc">pushregs</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">pushregs</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">zero</span><span class="p">;</span><span class="w">  </span><span class="c1">// Hard-wired zero</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">ra</span><span class="p">;</span><span class="w">    </span><span class="c1">// Return address</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">sp</span><span class="p">;</span><span class="w">    </span><span class="c1">// Stack pointer</span>
@@ -165,17 +227,17 @@ Document Version 20191213</p>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">t4</span><span class="p">;</span><span class="w">    </span><span class="c1">// Temporary</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">t5</span><span class="p">;</span><span class="w">    </span><span class="c1">// Temporary</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">t6</span><span class="p">;</span><span class="w">    </span><span class="c1">// Temporary</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 
-<span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">pushregs</span><span class="w"> </span><span class="n">gpr</span><span class="p">;</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">pushregs</span><span class="w"> </span><span class="n">gpr</span><span class="p">;</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w"> </span><span class="c1">//sstatus</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">epc</span><span class="p">;</span><span class="w"> </span><span class="c1">//sepc</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">badvaddr</span><span class="p">;</span><span class="w"> </span><span class="c1">//sbadvaddr</span>
 <span class="w">    </span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">cause</span><span class="p">;</span><span class="w"> </span><span class="c1">//scause</span>
-<span class="p">};</span><span class="w"></span>
+<span class="p">};</span>
 
-<span class="kt">void</span><span class="w"> </span><span class="nf">trap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">trap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">trapframe</span><span class="w"> </span><span class="o">*</span><span class="n">tf</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>C语言里面的结构体，是若干个变量在内存里直线排列。也就是说，一个<code class="docutils literal notranslate"><span class="pre">trapFrame</span></code>结构体占据36个<code class="docutils literal notranslate"><span class="pre">uintptr_t</span></code>的空间（在64位RISCV架构里我们定义<code class="docutils literal notranslate"><span class="pre">uintptr_t</span></code>为64位无符号整数），里面依次排列通用寄存器<code class="docutils literal notranslate"><span class="pre">x0</span></code>到<code class="docutils literal notranslate"><span class="pre">x31</span></code>,然后依次排列4个和中断相关的CSR, 我们希望中断处理程序能够利用这几个CSR的数值。</p>
@@ -194,104 +256,104 @@ Document Version 20191213</p>
 <span class="w">    </span><span class="c1">#依次保存32个通用寄存器。但栈顶指针需要特殊处理。</span>
 <span class="w">    </span><span class="c1">#因为我们想在trapFrame里保存分配36个REGBYTES之前的sp</span>
 <span class="w">    </span><span class="c1">#也就是保存之前写到sscratch里的sp的值</span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x4</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x5</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x6</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x7</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x8</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x9</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x11</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x12</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x13</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x14</span><span class="p">,</span><span class="w"> </span><span class="mi">14</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x15</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x17</span><span class="p">,</span><span class="w"> </span><span class="mi">17</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x18</span><span class="p">,</span><span class="w"> </span><span class="mi">18</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x19</span><span class="p">,</span><span class="w"> </span><span class="mi">19</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x20</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x21</span><span class="p">,</span><span class="w"> </span><span class="mi">21</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x22</span><span class="p">,</span><span class="w"> </span><span class="mi">22</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x23</span><span class="p">,</span><span class="w"> </span><span class="mi">23</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x24</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x25</span><span class="p">,</span><span class="w"> </span><span class="mi">25</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x26</span><span class="p">,</span><span class="w"> </span><span class="mi">26</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x27</span><span class="p">,</span><span class="w"> </span><span class="mi">27</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x28</span><span class="p">,</span><span class="w"> </span><span class="mi">28</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x29</span><span class="p">,</span><span class="w"> </span><span class="mi">29</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x30</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x31</span><span class="p">,</span><span class="w"> </span><span class="mi">31</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x4</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x5</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x6</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x7</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x8</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x9</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x11</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x12</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x13</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x14</span><span class="p">,</span><span class="w"> </span><span class="mi">14</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x15</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x17</span><span class="p">,</span><span class="w"> </span><span class="mi">17</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x18</span><span class="p">,</span><span class="w"> </span><span class="mi">18</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x19</span><span class="p">,</span><span class="w"> </span><span class="mi">19</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x20</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x21</span><span class="p">,</span><span class="w"> </span><span class="mi">21</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x22</span><span class="p">,</span><span class="w"> </span><span class="mi">22</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x23</span><span class="p">,</span><span class="w"> </span><span class="mi">23</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x24</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x25</span><span class="p">,</span><span class="w"> </span><span class="mi">25</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x26</span><span class="p">,</span><span class="w"> </span><span class="mi">26</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x27</span><span class="p">,</span><span class="w"> </span><span class="mi">27</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x28</span><span class="p">,</span><span class="w"> </span><span class="mi">28</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x29</span><span class="p">,</span><span class="w"> </span><span class="mi">29</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x30</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">x31</span><span class="p">,</span><span class="w"> </span><span class="mi">31</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
 <span class="w">	</span><span class="c1"># RISCV不能直接从CSR写到内存, 需要csrr把CSR读取到通用寄存器，再从通用寄存器STORE到内存</span>
-<span class="w">    </span><span class="nf">csrrw</span><span class="w"> </span><span class="no">s0</span><span class="p">,</span><span class="w"> </span><span class="no">sscratch</span><span class="p">,</span><span class="w"> </span><span class="no">x0</span><span class="w"></span>
-<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s1</span><span class="p">,</span><span class="w"> </span><span class="no">sstatus</span><span class="w"></span>
-<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s2</span><span class="p">,</span><span class="w"> </span><span class="no">sepc</span><span class="w"></span>
-<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s3</span><span class="p">,</span><span class="w"> </span><span class="no">sbadaddr</span><span class="w"></span>
-<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s4</span><span class="p">,</span><span class="w"> </span><span class="no">scause</span><span class="w"></span>
+<span class="w">    </span><span class="nf">csrrw</span><span class="w"> </span><span class="no">s0</span><span class="p">,</span><span class="w"> </span><span class="no">sscratch</span><span class="p">,</span><span class="w"> </span><span class="no">x0</span>
+<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s1</span><span class="p">,</span><span class="w"> </span><span class="no">sstatus</span>
+<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s2</span><span class="p">,</span><span class="w"> </span><span class="no">sepc</span>
+<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s3</span><span class="p">,</span><span class="w"> </span><span class="no">sbadaddr</span>
+<span class="w">    </span><span class="nf">csrr</span><span class="w"> </span><span class="no">s4</span><span class="p">,</span><span class="w"> </span><span class="no">scause</span>
 
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s1</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s2</span><span class="p">,</span><span class="w"> </span><span class="mi">33</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s3</span><span class="p">,</span><span class="w"> </span><span class="mi">34</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s4</span><span class="p">,</span><span class="w"> </span><span class="mi">35</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s1</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s2</span><span class="p">,</span><span class="w"> </span><span class="mi">33</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s3</span><span class="p">,</span><span class="w"> </span><span class="mi">34</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="w">    </span><span class="nf">STORE</span><span class="w"> </span><span class="no">s4</span><span class="p">,</span><span class="w"> </span><span class="mi">35</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
 <span class="w">    </span><span class="na">.endm</span><span class="w"> </span><span class="c1">#汇编宏定义结束</span>
 </pre></div>
 </div>
 <p>然后是恢复上下文的汇编宏，恢复的顺序和当时保存的顺序反过来，先加载两个CSR, 再加载通用寄存器。</p>
 <div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="c1"># kern/trap/trapentry.S</span>
-<span class="na">.macro</span><span class="w"> </span><span class="no">RESTORE_ALL</span><span class="w"></span>
+<span class="na">.macro</span><span class="w"> </span><span class="no">RESTORE_ALL</span>
 
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">s1</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">s2</span><span class="p">,</span><span class="w"> </span><span class="mi">33</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">s1</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">s2</span><span class="p">,</span><span class="w"> </span><span class="mi">33</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
 
 <span class="c1"># 注意之前保存的几个CSR并不都需要恢复</span>
-<span class="nf">csrw</span><span class="w"> </span><span class="no">sstatus</span><span class="p">,</span><span class="w"> </span><span class="no">s1</span><span class="w"></span>
-<span class="nf">csrw</span><span class="w"> </span><span class="no">sepc</span><span class="p">,</span><span class="w"> </span><span class="no">s2</span><span class="w"></span>
+<span class="nf">csrw</span><span class="w"> </span><span class="no">sstatus</span><span class="p">,</span><span class="w"> </span><span class="no">s1</span>
+<span class="nf">csrw</span><span class="w"> </span><span class="no">sepc</span><span class="p">,</span><span class="w"> </span><span class="no">s2</span>
 
 <span class="c1"># 恢复sp之外的通用寄存器，这时候还需要根据sp来确定其他寄存器数值保存的位置</span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x4</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x5</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x6</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x7</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x8</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x9</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x11</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x12</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x13</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x14</span><span class="p">,</span><span class="w"> </span><span class="mi">14</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x15</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x17</span><span class="p">,</span><span class="w"> </span><span class="mi">17</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x18</span><span class="p">,</span><span class="w"> </span><span class="mi">18</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x19</span><span class="p">,</span><span class="w"> </span><span class="mi">19</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x20</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x21</span><span class="p">,</span><span class="w"> </span><span class="mi">21</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x22</span><span class="p">,</span><span class="w"> </span><span class="mi">22</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x23</span><span class="p">,</span><span class="w"> </span><span class="mi">23</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x24</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x25</span><span class="p">,</span><span class="w"> </span><span class="mi">25</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x26</span><span class="p">,</span><span class="w"> </span><span class="mi">26</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x27</span><span class="p">,</span><span class="w"> </span><span class="mi">27</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x28</span><span class="p">,</span><span class="w"> </span><span class="mi">28</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x29</span><span class="p">,</span><span class="w"> </span><span class="mi">29</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x30</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x31</span><span class="p">,</span><span class="w"> </span><span class="mi">31</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x4</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x5</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x6</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x7</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x8</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x9</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x10</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x11</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x12</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x13</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x14</span><span class="p">,</span><span class="w"> </span><span class="mi">14</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x15</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x17</span><span class="p">,</span><span class="w"> </span><span class="mi">17</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x18</span><span class="p">,</span><span class="w"> </span><span class="mi">18</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x19</span><span class="p">,</span><span class="w"> </span><span class="mi">19</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x20</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x21</span><span class="p">,</span><span class="w"> </span><span class="mi">21</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x22</span><span class="p">,</span><span class="w"> </span><span class="mi">22</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x23</span><span class="p">,</span><span class="w"> </span><span class="mi">23</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x24</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x25</span><span class="p">,</span><span class="w"> </span><span class="mi">25</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x26</span><span class="p">,</span><span class="w"> </span><span class="mi">26</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x27</span><span class="p">,</span><span class="w"> </span><span class="mi">27</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x28</span><span class="p">,</span><span class="w"> </span><span class="mi">28</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x29</span><span class="p">,</span><span class="w"> </span><span class="mi">29</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x30</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x31</span><span class="p">,</span><span class="w"> </span><span class="mi">31</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
 <span class="c1"># 最后恢复sp</span>
-<span class="nf">LOAD</span><span class="w"> </span><span class="no">x2</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span><span class="w"></span>
-<span class="na">.endm</span><span class="w"></span>
+<span class="nf">LOAD</span><span class="w"> </span><span class="no">x2</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">*</span><span class="no">REGBYTES</span><span class="p">(</span><span class="no">sp</span><span class="p">)</span>
+<span class="na">.endm</span>
 </pre></div>
 </div>
 <p>现在我们编写真正的中断入口点</p>
-<div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="na">.globl</span><span class="w"> </span><span class="no">__alltraps</span><span class="w"></span>
+<div class="highlight-asm notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="na">.globl</span><span class="w"> </span><span class="no">__alltraps</span>
 
 <span class="na">.align</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="c1">#中断入口点 __alltraps必须四字节对齐</span>
-<span class="nl">__alltraps:</span><span class="w"></span>
+<span class="nl">__alltraps:</span>
 <span class="w">    </span><span class="nf">SAVE_ALL</span><span class="w"> </span><span class="c1">#保存上下文</span>
 
 <span class="w">    </span><span class="nf">move</span><span class="w">  </span><span class="no">a0</span><span class="p">,</span><span class="w"> </span><span class="no">sp</span><span class="w"> </span><span class="c1">#传递参数。</span>
@@ -300,11 +362,11 @@ Document Version 20191213</p>
 <span class="w">    </span><span class="nf">jal</span><span class="w"> </span><span class="no">trap</span><span class="w"> </span>
 <span class="w">    </span><span class="c1">#trap函数指向完之后，会回到这里向下继续执行__trapret里面的内容，RESTORE_ALL,sret</span>
 
-<span class="w">    </span><span class="na">.globl</span><span class="w"> </span><span class="no">__trapret</span><span class="w"></span>
-<span class="nl">__trapret:</span><span class="w"></span>
-<span class="w">    </span><span class="nf">RESTORE_ALL</span><span class="w"></span>
+<span class="w">    </span><span class="na">.globl</span><span class="w"> </span><span class="no">__trapret</span>
+<span class="nl">__trapret:</span>
+<span class="w">    </span><span class="nf">RESTORE_ALL</span>
 <span class="w">    </span><span class="c1"># return from supervisor call</span>
-<span class="w">    </span><span class="nf">sret</span><span class="w"></span>
+<span class="w">    </span><span class="nf">sret</span>
 </pre></div>
 </div>
 <p>我们可以看到，<code class="docutils literal notranslate"><span class="pre">trapentry.S</span></code>这个中断入口点的作用是保存和恢复上下文，并把上下文包装成结构体送到trap函数那里去。下面我们就去看看trap函数里面做些什么。</p>

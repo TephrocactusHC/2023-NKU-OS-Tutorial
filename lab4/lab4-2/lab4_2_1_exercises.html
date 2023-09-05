@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>练习 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -51,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab4:进程管理</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab4-1/lab4_1_goals.html">实验目的</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="index.html">实验内容</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="index.html#id2">提前说明</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="index.html#id3">本节内容</a></li>
@@ -96,7 +98,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>练习<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>练习<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>对实验报告的要求：</p>
 <ul class="simple">
 <li><p>基于markdown格式来完成，以文本方式为主</p></li>
@@ -106,11 +108,11 @@
 <li><p>列出你认为OS原理中很重要，但在实验中没有对应上的知识点</p></li>
 </ul>
 <section id="id2">
-<h2>练习0：填写已有实验<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>练习0：填写已有实验<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>本实验依赖实验1/2/3。请把你做的实验1/2/3的代码填入本实验中代码中有“LAB1”,“LAB2”,“LAB3”的注释相应部分。</p>
 </section>
 <section id="id3">
-<h2>练习1：分配并初始化一个进程控制块（需要编码）<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<h2>练习1：分配并初始化一个进程控制块（需要编码）<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>alloc_proc函数（位于kern/process/proc.c中）负责分配并返回一个新的struct proc_struct结构，用于存储新建立的内核线程的管理信息。ucore需要对这个结构进行最基本的初始化，你需要完成这个初始化过程。</p>
 <blockquote>
 <div><p>【提示】在alloc_proc函数的实现中，需要初始化的proc_struct结构中的成员变量至少包括：state/pid/runs/kstack/need_resched/parent/mm/context/tf/cr3/flags/name。</p>
@@ -121,7 +123,7 @@
 </ul>
 </section>
 <section id="id4">
-<h2>练习2：为新创建的内核线程分配资源（需要编码）<a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<h2>练习2：为新创建的内核线程分配资源（需要编码）<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <p>创建一个内核线程需要分配和设置好很多资源。kernel_thread函数通过调用<strong>do_fork</strong>函数完成具体内核线程的创建工作。do_kernel函数会调用alloc_proc函数来分配并初始化一个进程控制块，但alloc_proc只是找到了一小块内存用以记录进程的必要信息，并没有实际分配这些资源。ucore一般通过do_fork实际创建新的内核线程。do_fork的作用是，创建当前内核线程的一个副本，它们的执行上下文、代码、数据都一样，但是存储位置不同。因此，我们<strong>实际需要”fork”的东西就是stack和trapframe</strong>。在这个过程中，需要给新内核线程分配资源，并且复制原进程的状态。你需要完成在kern/process/proc.c中的do_fork函数中的处理过程。它的大致执行步骤包括：</p>
 <ul class="simple">
 <li><p>调用alloc_proc，首先获得一块用户信息块。</p></li>
@@ -138,7 +140,7 @@
 </ul>
 </section>
 <section id="proc-run">
-<h2>练习3：编写proc_run 函数（需要编码）<a class="headerlink" href="#proc-run" title="永久链接至标题"></a></h2>
+<h2>练习3：编写proc_run 函数（需要编码）<a class="headerlink" href="#proc-run" title="Link to this heading"></a></h2>
 <p>proc_run用于将指定的进程切换到CPU上运行。它的大致执行步骤包括：</p>
 <ul class="simple">
 <li><p>检查要切换的进程是否与当前正在运行的进程相同，如果相同则不需要切换。</p></li>
@@ -156,7 +158,7 @@
 <p>如果可以得到如 附录A所示的显示内容（仅供参考，不是标准答案输出），则基本正确。</p>
 </section>
 <section id="challenge">
-<h2>扩展练习 Challenge：<a class="headerlink" href="#challenge" title="永久链接至标题"></a></h2>
+<h2>扩展练习 Challenge：<a class="headerlink" href="#challenge" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>说明语句<code class="docutils literal notranslate"><span class="pre">local_intr_save(intr_flag);....local_intr_restore(intr_flag);</span></code>是如何实现开关中断的？</p></li>
 </ul>

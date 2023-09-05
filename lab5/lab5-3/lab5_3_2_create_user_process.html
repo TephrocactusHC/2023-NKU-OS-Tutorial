@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>创建用户进程 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,10 +97,10 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>创建用户进程<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>创建用户进程<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>在实验四中，我们已经完成了对内核线程的创建，但与用户进程的创建过程相比，创建内核线程的过程还远远不够。而这两个创建过程的差异本质上就是用户进程和内核线程的差异决定的。</p>
 <section id="id2">
-<h2>1. 应用程序的组成和编译<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>1. 应用程序的组成和编译<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>我们首先来看一个应用程序，这里我们假定是hello应用程序，在user/hello.c中实现，代码如下：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &lt;stdio.h&gt;</span>
 <span class="c1">#include &lt;ulib.h&gt;</span>
@@ -136,7 +137,7 @@ riscv64-unknown-elf-gcc -Iuser/libs/ -mcmodel=medany -O2 -std=gnu99 -Wno-unused 
 <p>在make的最后一步执行了一个ld命令，把hello应用程序的执行码obj/__user_hello.out连接在了ucore kernel的末尾。且ld命令会在kernel中会把__user_hello.out的位置和大小记录在全局变量_binary_obj___user_hello_out_start和_binary_obj___user_hello_out_size中，这样这个hello用户程序就能够和ucore内核一起被 bootloader 加载到内存里中，并且通过这两个全局变量定位hello用户程序执行码的起始位置和大小。而到了与文件系统相关的实验后，ucore会提供一个简单的文件系统，那时所有的用户程序就都不再用这种方法进行加载了，而可以用大家熟悉的文件方式进行加载了。</p>
 </section>
 <section id="id3">
-<h2>2. 用户进程的虚拟地址空间<a class="headerlink" href="#id3" title="永久链接至标题"></a></h2>
+<h2>2. 用户进程的虚拟地址空间<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>在tools/user.ld描述了用户程序的用户虚拟空间的执行入口虚拟地址：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SECTIONS</span> <span class="p">{</span>
     <span class="o">/*</span> <span class="n">Load</span> <span class="n">programs</span> <span class="n">at</span> <span class="n">this</span> <span class="n">address</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span> <span class="n">means</span> <span class="n">the</span> <span class="n">current</span> <span class="n">address</span> <span class="o">*/</span>
@@ -157,7 +158,7 @@ riscv64-unknown-elf-gcc -Iuser/libs/ -mcmodel=medany -O2 -std=gnu99 -Wno-unused 
 <p><img alt="image" src="../../_images/image001.png" /></p>
 </section>
 <section id="id4">
-<h2>3. 创建并执行用户进程<a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<h2>3. 创建并执行用户进程<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <p>在确定了用户进程的执行代码和数据，以及用户进程的虚拟空间布局后，我们可以来创建用户进程了。在本实验中第一个用户进程是由第二个内核线程initproc通过把hello应用程序执行码覆盖到initproc的用户虚拟内存空间来创建的，相关代码如下所示：</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="c1">// kern/process/proc.c</span>
 <span class="cp">#define __KERNEL_EXECVE(name, binary, size) ({                          \</span>
@@ -181,15 +182,15 @@ riscv64-unknown-elf-gcc -Iuser/libs/ -mcmodel=medany -O2 -std=gnu99 -Wno-unused 
 <span class="cp">#define KERNEL_EXECVE2(x, xstart, xsize)        __KERNEL_EXECVE2(x, xstart, xsize)</span>
 
 <span class="c1">// user_main - kernel thread used to exec a user program</span>
-<span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"></span>
-<span class="nf">user_main</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int</span>
+<span class="nf">user_main</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="cp">#ifdef TEST</span>
-<span class="w">    </span><span class="n">KERNEL_EXECVE2</span><span class="p">(</span><span class="n">TEST</span><span class="p">,</span><span class="w"> </span><span class="n">TESTSTART</span><span class="p">,</span><span class="w"> </span><span class="n">TESTSIZE</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">KERNEL_EXECVE2</span><span class="p">(</span><span class="n">TEST</span><span class="p">,</span><span class="w"> </span><span class="n">TESTSTART</span><span class="p">,</span><span class="w"> </span><span class="n">TESTSIZE</span><span class="p">);</span>
 <span class="cp">#else</span>
-<span class="w">    </span><span class="n">KERNEL_EXECVE</span><span class="p">(</span><span class="n">exit</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">KERNEL_EXECVE</span><span class="p">(</span><span class="n">exit</span><span class="p">);</span>
 <span class="cp">#endif</span>
-<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;user_main execve failed.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">panic</span><span class="p">(</span><span class="s">&quot;user_main execve failed.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>对于上述代码，我们需要从后向前按照函数/宏的实现一个一个来分析。Initproc的执行主体是init_main函数，这个函数在缺省情况下是执行宏KERNEL_EXECVE(hello)，而这个宏最终是调用kernel_execve函数来调用SYS_exec系统调用，由于ld在链接hello应用程序执行码时定义了两全局变量：</p>
@@ -209,7 +210,7 @@ riscv64-unknown-elf-gcc -Iuser/libs/ -mcmodel=medany -O2 -std=gnu99 -Wno-unused 
 <li><p>接下来的一步是加载应用程序执行码到当前进程的新创建的用户态虚拟空间中。这里涉及到读ELF格式的文件，申请内存空间，建立用户态虚存空间，加载应用程序执行码等。load_icode函数完成了整个复杂的工作。</p></li>
 </ul>
 <p>load_icode函数的主要工作就是给用户进程建立一个能够让用户进程正常运行的用户环境。此函数有一百多行，完成了如下重要工作：</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>调用mm_create函数来申请进程的内存管理数据结构mm所需内存空间，并对mm进行初始化；</p></li>
 <li><p>调用setup_pgdir来申请一个页目录表所需的一个页大小的内存空间，并把描述ucore内核虚空间映射的内核页表（boot_pgdir所指）的内容拷贝到此新目录表中，最后让mm-&gt;pgdir指向此页目录表，这就是进程新的页目录表了，且能够正确映射内核虚空间；</p></li>
 <li><p>根据应用程序执行码的起始位置来解析此ELF格式的执行程序，并调用mm_map函数根据ELF格式的执行程序说明的各个段（代码段、数据段、BSS段等）的起始位置和大小建立对应的vma结构，并把vma插入到mm结构中，从而表明了用户进程的合法用户态虚拟地址空间；</p></li>

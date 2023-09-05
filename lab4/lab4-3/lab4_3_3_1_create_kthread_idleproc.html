@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>创建第 0 个内核线程 idleproc &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -51,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab4:进程管理</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab4-1/lab4_1_goals.html">实验目的</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../lab4-2/index.html">实验内容</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="index.html">内核线程管理</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="index.html#id2">进程与线程</a></li>
@@ -97,7 +99,7 @@
            <div itemprop="articleBody">
              
   <section id="idleproc">
-<h1>创建第 0 个内核线程 idleproc<a class="headerlink" href="#idleproc" title="永久链接至标题"></a></h1>
+<h1>创建第 0 个内核线程 idleproc<a class="headerlink" href="#idleproc" title="Link to this heading"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">idleproc</span></code>是一个在操作系统中常见的概念，用于表示空闲进程。在操作系统中，空闲进程是一个特殊的进程，它的主要目的是在系统没有其他任务需要执行时，占用 CPU 时间，同时便于进程调度的统一化。</p>
 <p>在init.c::kern_init函数调用了proc.c::proc_init函数。proc_init函数启动了创建内核线程的步骤。首先当前的执行上下文（从kern_init 启动至今）就可以看成是uCore内核（也可看做是内核进程）中的一个内核线程的上下文。为此，uCore通过给当前执行的上下文分配一个进程控制块以及对它进行相应初始化，将其打造成第0个内核线程 – idleproc。具体步骤如下：</p>
 <p>首先需要初始化进程链表。进程链表就是把所有进程控制块串联起来的数据结构，可以记录和追踪每一个进程。</p>

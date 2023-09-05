@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>调度算法框架 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,58 +97,58 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>调度算法框架<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>调度算法框架<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>调度算法框架实现为一个结构体，其中保存了各个函数指针。通过实现这些函数指针即可实现各个调度算法。结构体的定义如下：</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">sched_class</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">sched_class</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// 调度类的名字</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 初始化run queue</span>
-<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">init</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">// 把进程放进run queue，这个是run queue的维护函数</span>
-<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">enqueue</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">enqueue</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">// 把进程取出run queue</span>
-<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">dequeue</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">dequeue</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">// 选择下一个要执行的进程</span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">pick_next</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">pick_next</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">);</span>
 <span class="w">    </span><span class="c1">// 每次时钟中断调用</span>
-<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">proc_tick</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">);</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">proc_tick</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="o">*</span><span class="n">proc</span><span class="p">);</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>所有的进程被组织成一个<code class="docutils literal notranslate"><span class="pre">run_queue</span></code>数据结构。这个数据结构虽然没有保存在调度类中，但是是由调度类来管理的。目前ucore仅支持单个CPU核心，所以只有一个全局的<code class="docutils literal notranslate"><span class="pre">run_queue</span></code>。</p>
 <p>我们在进程控制块中也记录了一些和调度有关的信息：</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">proc_struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// ...</span>
 <span class="w">    </span><span class="c1">// 表示这个进程是否需要调度</span>
-<span class="w">    </span><span class="k">volatile</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">need_resched</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">volatile</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">need_resched</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// run queue的指针</span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="o">*</span><span class="n">rq</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 与这个进程相关的run queue表项</span>
-<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">run_link</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">run_link</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 这个进程剩下的时间片</span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">time_slice</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">time_slice</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 以下几个都和Stride调度算法实现有关</span>
 <span class="w">    </span><span class="c1">// 这个进程在优先队列中对应的项</span>
-<span class="w">    </span><span class="n">skew_heap_entry_t</span><span class="w"> </span><span class="n">lab6_run_pool</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">skew_heap_entry_t</span><span class="w"> </span><span class="n">lab6_run_pool</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 该进程的Stride值</span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">lab6_stride</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">lab6_stride</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 该进程的优先级</span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">lab6_priority</span><span class="p">;</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">lab6_priority</span><span class="p">;</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>前面的几个成员变量的含义都比较直接，最后面的几个的含义可以参见Stride调度算法。这也是本次lab的实验内容。</p>
 <p>结构体<code class="docutils literal notranslate"><span class="pre">run_queue</span></code>实现了运行队列，其内部结构如下：</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">run_queue</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// 保存着链表头指针</span>
-<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">run_list</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">list_entry_t</span><span class="w"> </span><span class="n">run_list</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 运行队列中的线程数</span>
-<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">proc_num</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">proc_num</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// 最大的时间片大小</span>
-<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">max_time_slice</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">max_time_slice</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// Stride调度算法中的优先队列</span>
-<span class="w">    </span><span class="n">skew_heap_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">lab6_run_pool</span><span class="p">;</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">skew_heap_entry_t</span><span class="w"> </span><span class="o">*</span><span class="n">lab6_run_pool</span><span class="p">;</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>有了这些基础，我们就来实现一个最简单的调度算法：Round-Robin调度算法，也叫时间片轮转调度算法。</p>

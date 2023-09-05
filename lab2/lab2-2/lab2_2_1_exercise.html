@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>练习 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1>练习<a class="headerlink" href="#id1" title="永久链接至标题"></a></h1>
+<h1>练习<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>对实验报告的要求：</p>
 <ul class="simple">
 <li><p>基于markdown格式来完成，以文本方式为主</p></li>
@@ -106,11 +107,11 @@
 <li><p>列出你认为OS原理中很重要，但在实验中没有对应上的知识点</p></li>
 </ul>
 <section id="id2">
-<h2>练习0：填写已有实验<a class="headerlink" href="#id2" title="永久链接至标题"></a></h2>
+<h2>练习0：填写已有实验<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>本实验依赖实验1。请把你做的实验1的代码填入本实验中代码中有“LAB1”的注释相应部分并按照实验手册进行进一步的修改。具体来说，就是跟着实验手册的教程一步步做，然后完成教程后继续完成完成exercise部分的剩余练习。</p>
 </section>
 <section id="first-fit">
-<h2>练习1：理解first-fit 连续物理内存分配算法（思考题）<a class="headerlink" href="#first-fit" title="永久链接至标题"></a></h2>
+<h2>练习1：理解first-fit 连续物理内存分配算法（思考题）<a class="headerlink" href="#first-fit" title="Link to this heading"></a></h2>
 <p>first-fit 连续物理内存分配算法作为物理内存分配一个很基础的方法，需要同学们理解它的实现过程。请大家仔细阅读实验手册的教程并结合<code class="docutils literal notranslate"><span class="pre">kern/mm/default_pmm.c</span></code>中的相关代码，认真分析default_init，default_init_memmap，default_alloc_pages， default_free_pages等相关函数，并描述程序在进行物理内存分配的过程以及各个函数的作用。
 请在实验报告中简要说明你的设计实现过程。请回答如下问题：</p>
 <ul class="simple">
@@ -118,7 +119,7 @@
 </ul>
 </section>
 <section id="best-fit">
-<h2>练习2：实现 Best-Fit 连续物理内存分配算法（需要编程）<a class="headerlink" href="#best-fit" title="永久链接至标题"></a></h2>
+<h2>练习2：实现 Best-Fit 连续物理内存分配算法（需要编程）<a class="headerlink" href="#best-fit" title="Link to this heading"></a></h2>
 <p>在完成练习一后，参考kern/mm/default_pmm.c对First Fit算法的实现，编程实现Best Fit页面分配算法，算法的时空复杂度不做要求，能通过测试即可。
 请在实验报告中简要说明你的设计实现过程，阐述代码是如何对物理内存进行分配和释放，并回答如下问题：</p>
 <ul class="simple">
@@ -126,21 +127,21 @@
 </ul>
 </section>
 <section id="challenge-buddy-system">
-<h2>扩展练习Challenge：buddy system（伙伴系统）分配算法（需要编程）<a class="headerlink" href="#challenge-buddy-system" title="永久链接至标题"></a></h2>
+<h2>扩展练习Challenge：buddy system（伙伴系统）分配算法（需要编程）<a class="headerlink" href="#challenge-buddy-system" title="Link to this heading"></a></h2>
 <p>Buddy System算法把系统中的可用存储空间划分为存储块(Block)来进行管理, 每个存储块的大小必须是2的n次幂(Pow(2, n)), 即1, 2, 4, 8, 16, 32, 64, 128…</p>
 <ul class="simple">
 <li><p>参考<a class="reference external" href="http://coolshell.cn/articles/10427.html">伙伴分配器的一个极简实现</a>， 在ucore中实现buddy system分配算法，要求有比较充分的测试用例说明实现的正确性，需要有设计文档。</p></li>
 </ul>
 </section>
 <section id="challenge-slub">
-<h2>扩展练习Challenge：任意大小的内存单元slub分配算法（需要编程）<a class="headerlink" href="#challenge-slub" title="永久链接至标题"></a></h2>
+<h2>扩展练习Challenge：任意大小的内存单元slub分配算法（需要编程）<a class="headerlink" href="#challenge-slub" title="Link to this heading"></a></h2>
 <p>slub算法，实现两层架构的高效内存单元分配，第一层是基于页大小的内存分配，第二层是在第一层基础上实现基于任意大小的内存分配。可简化实现，能够体现其主体思想即可。</p>
 <ul class="simple">
 <li><p>参考<a class="reference external" href="http://www.ibm.com/developerworks/cn/linux/l-cn-slub/">linux的slub分配算法/</a>，在ucore中实现slub分配算法。要求有比较充分的测试用例说明实现的正确性，需要有设计文档。</p></li>
 </ul>
 </section>
 <section id="challenge">
-<h2>扩展练习Challenge：硬件的可用物理内存范围的获取方法（思考题）<a class="headerlink" href="#challenge" title="永久链接至标题"></a></h2>
+<h2>扩展练习Challenge：硬件的可用物理内存范围的获取方法（思考题）<a class="headerlink" href="#challenge" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>如果 OS 无法提前知道当前硬件的可用物理内存范围，请问你有何办法让 OS 获取可用物理内存范围？</p></li>
 </ul>

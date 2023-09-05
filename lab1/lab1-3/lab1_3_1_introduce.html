@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>riscv64 中断介绍 &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -96,11 +97,11 @@
            <div itemprop="articleBody">
              
   <section id="riscv64">
-<h1>riscv64 中断介绍<a class="headerlink" href="#riscv64" title="永久链接至标题"></a></h1>
+<h1>riscv64 中断介绍<a class="headerlink" href="#riscv64" title="Link to this heading"></a></h1>
 <section id="id1">
-<h2>中断概念<a class="headerlink" href="#id1" title="永久链接至标题"></a></h2>
+<h2>中断概念<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
 <section id="id2">
-<h3>中断机制<a class="headerlink" href="#id2" title="永久链接至标题"></a></h3>
+<h3>中断机制<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <p><strong>中断</strong>（interrupt）机制，就是不管CPU现在手里在干啥活，收到“中断”的时候，都先放下来去处理其他事情，处理完其他事情可能再回来干手头的活。</p>
 <p>例如，CPU要向磁盘发一个读取数据的请求，由于磁盘速度相对CPU较慢，在“发出请求”到“收到磁盘数据”之间会经过很多时间周期，如果CPU干等着磁盘干活就相当于CPU在磨洋工。因此我们可以让CPU发出读数据的请求后立刻开始干另一件事情。但是，等一段时间之后，磁盘的数据取到了，而CPU在干其他的事情，我们怎么办才能让CPU知道之前发出的磁盘请求已经完成了呢？我们可以让磁盘给CPU一个“中断”，让CPU放下手里的事情来接受磁盘的数据。</p>
 <p>再比如，为了保证CPU正在执行的程序不会永远运行下去，我们需要定时检查一下它是否已经运行“超时”。想象有一个程序由于bug进入了死循环，如果CPU一直运行这个程序，那么其他的所有程序都会因为等待CPU资源而无法运行，造成严重的资源浪费。但是检查是否超时，需要CPU执行一段代码，也就是让CPU暂停当前执行的程序。我们不能假设当前执行的程序会主动地定时让出CPU，那么就需要CPU定时“打断”当前程序的执行，去进行一些处理，这通过时钟中断来实现。</p>
@@ -114,7 +115,7 @@
 </ul>
 </section>
 <section id="id3">
-<h3><strong>中断分类</strong><a class="headerlink" href="#id3" title="永久链接至标题"></a></h3>
+<h3><strong>中断分类</strong><a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <p>异常(Exception)，指在执行一条指令的过程中发生了错误，此时我们通过中断来处理错误。最常见的异常包括：访问无效内存地址、执行非法指令(除零)、发生缺页等。他们有的可以恢复(如缺页)，有的不可恢复(如除零)，只能终止程序执行。</p>
 <p>陷入(Trap)，指我们主动通过一条指令停下来，并跳转到处理函数。常见的形式有通过ecall进行系统调用(syscall)，或通过ebreak进入断点(breakpoint)。</p>
 <p>外部中断(Interrupt)，简称中断，指的是 CPU 的执行过程被外设发来的信号打断，此时我们必须先停下来对该外设进行处理。典型的有定时器倒计时结束、串口收到数据等。</p>
@@ -132,18 +133,18 @@ exception or an interrupt.</p>
 </section>
 </section>
 <section id="id4">
-<h2>riscv64 权限模式<a class="headerlink" href="#id4" title="永久链接至标题"></a></h2>
+<h2>riscv64 权限模式<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <section id="riscv64-m-mode">
-<h3>riscv64 的 M Mode<a class="headerlink" href="#riscv64-m-mode" title="永久链接至标题"></a></h3>
+<h3>riscv64 的 M Mode<a class="headerlink" href="#riscv64-m-mode" title="Link to this heading"></a></h3>
 <p>M-mode(机器模式，缩写为 M 模式)是 RISC-V 中 hart(hardware thread,硬件线程)可以执行的最高权限模式。在 M 模式下运行的 hart 对内存,I/O 和一些对于启动和配置系统来说必要的底层功能有着完全的使用权。默认情况下,发生所有异常(不论在什么权限模式下)的时候,控制权都会被移交到 M 模式的异常处理程序。它是唯一所有标准 RISC-V 处理器都必须实现的权限模式。</p>
 </section>
 <section id="riscv64-s-mode">
-<h3>riscv64 的 S Mode<a class="headerlink" href="#riscv64-s-mode" title="永久链接至标题"></a></h3>
+<h3>riscv64 的 S Mode<a class="headerlink" href="#riscv64-s-mode" title="Link to this heading"></a></h3>
 <p>S-mode(监管者模式，缩写为 S 模式)是支持现代类 Unix 操作系统的权限模式，支持基于页面的虚拟内存机制是其核心。 Unix 系统中的大多数例外都应该进行 S 模式下的系统调用。M 模式的异常处理程序可以将异常重新导向 S 模式，也支持通过异常委托机制（Machine Interrupt Delegation,机器中断委托）选择性地将中断和同步异常直接交给 S 模式处理,而完全绕过 M 模式。</p>
 </section>
 </section>
 <section id="id5">
-<h2>寄存器<a class="headerlink" href="#id5" title="永久链接至标题"></a></h2>
+<h2>寄存器<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
 <p>除了32个通用寄存器之外，RISCV架构还有大量的 <strong>控制状态寄存器</strong> <strong>Control and Status Registers</strong>(CSRs)。其中有几个重要的寄存器和中断机制有关。</p>
 <p>有些时候，禁止CPU产生中断很有用。（就像你在做重要的事情，如操作系统lab的时候，并不想被打断）。所以，<code class="docutils literal notranslate"><span class="pre">sstatus</span></code>寄存器(Supervisor Status Register)里面有一个二进制位<code class="docutils literal notranslate"><span class="pre">SIE</span></code>(supervisor interrupt enable，在RISCV标准里是2^1 对应的二进制位)，数值为0的时候，如果当程序在S态运行，将禁用全部中断。（对于在U态运行的程序，SIE这个二进制位的数值没有任何意义），<code class="docutils literal notranslate"><span class="pre">sstatus</span></code>还有一个二进制位<code class="docutils literal notranslate"><span class="pre">UIE</span></code>(user interrupt enable)可以在置零的时候禁止用户态程序产生中断。</p>
 <p>在中断产生后，应该有个<strong>中断处理程序</strong>来处理中断。CPU怎么知道中断处理程序在哪？实际上，RISCV架构有个CSR叫做<code class="docutils literal notranslate"><span class="pre">stvec</span></code>(Supervisor Trap Vector Base Address Register)，即所谓的”中断向量表基址”。中断向量表的作用就是把不同种类的中断映射到对应的中断处理程序。如果只有一个中断处理程序，那么可以让<code class="docutils literal notranslate"><span class="pre">stvec</span></code>直接指向那个中断处理程序的地址。</p>
@@ -195,7 +196,7 @@ may redefine stval’s setting for other exceptions.</p>
 </div></blockquote>
 </section>
 <section id="id6">
-<h2>特权指令<a class="headerlink" href="#id6" title="永久链接至标题"></a></h2>
+<h2>特权指令<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <p>RISCV支持以下和中断相关的特权指令：</p>
 <p><strong>ecall</strong>(environment call)，当我们在 S 态执行这条指令时，会触发一个 ecall-from-s-mode-exception，从而进入 M 模式中的中断处理流程（如设置定时器等）；当我们在 U 态执行这条指令时，会触发一个 ecall-from-u-mode-exception，从而进入 S 模式中的中断处理流程（常用来进行系统调用）。</p>
 <p><strong>sret</strong>，用于 S 态中断返回到 U 态，实际作用为pc←sepc，回顾<strong>sepc</strong>定义，返回到通过中断进入 S 态之前的地址。</p>

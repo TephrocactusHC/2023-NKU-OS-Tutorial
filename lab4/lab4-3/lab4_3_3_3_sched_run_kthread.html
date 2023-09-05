@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="zh-CN" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>调度并执行内核线程 initproc &mdash; 2023级NKU操作系统实验指导书 1.0.0 文档</title>
@@ -11,11 +11,12 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/translations.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
     <link rel="search" title="搜索" href="../../search.html" />
@@ -51,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../lab3/index.html">lab3:缺页异常和页面置换</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">lab4:进程管理</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../index.html#id1">本章内容</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../lab4-1/lab4_1_goals.html">实验目的</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../lab4-2/index.html">实验内容</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="index.html">内核线程管理</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="index.html#id2">进程与线程</a></li>
@@ -97,7 +99,7 @@
            <div itemprop="articleBody">
              
   <section id="initproc">
-<h1>调度并执行内核线程 initproc<a class="headerlink" href="#initproc" title="永久链接至标题"></a></h1>
+<h1>调度并执行内核线程 initproc<a class="headerlink" href="#initproc" title="Link to this heading"></a></h1>
 <p>在uCore执行完proc_init函数后，就创建好了两个内核线程：idleproc和initproc，这时uCore当前的执行现场就是idleproc，等到执行到init函数的最后一个函数cpu_idle之前，uCore的所有初始化工作就结束了，idleproc将通过执行cpu_idle函数让出CPU，给其它内核线程执行，具体过程如下：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>void
 cpu_idle(void) {
@@ -113,7 +115,7 @@ cpu_idle(void) {
 2．在proc_list队列中查找下一个处于“就绪”态的线程或进程next；
 3．找到这样的进程后，就调用proc_run函数，保存当前进程current的执行现场（进程上下文），恢复新进程的执行现场，完成进程切换。</p>
 <p>至此，新的进程next就开始执行了。由于在proc10中只有两个内核线程，且idleproc要让出CPU给initproc执行，我们可以看到schedule函数通过查找proc_list进程队列，只能找到一个处于“就绪”态的initproc内核线程。并通过proc_run和进一步的switch_to函数完成两个执行现场的切换，具体流程如下：</p>
-<ol class="simple">
+<ol class="arabic simple">
 <li><p>将当前运行的进程设置为要切换过去的进程</p></li>
 <li><p>将页表换成新进程的页表</p></li>
 <li><p>使用<code class="docutils literal notranslate"><span class="pre">switch_to</span></code>切换到新进程</p></li>
