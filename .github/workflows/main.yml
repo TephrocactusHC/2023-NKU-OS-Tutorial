@@ -17,7 +17,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y python3-sphinx
-        pip install recommonmark
+        pip install myst-parser
         pip install sphinx_rtd_theme
 
     - name: Build Sphinx docs
